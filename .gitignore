@@ -1,0 +1,5 @@
+# Build directory
+/build
+
+# KDevelop files
+/*.kdev4
