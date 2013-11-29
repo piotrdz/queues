@@ -40,7 +40,10 @@ set(queues_SOURCES
 
  src/engine/simulation.cpp
 
+ src/ui/connection_item.cpp
  src/ui/main_window.cpp
+ src/ui/simulation_scene.cpp
+ src/ui/station_item.cpp
 )
 
 qt5_add_resources(queues_RESOURCES

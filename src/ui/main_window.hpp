@@ -7,6 +7,8 @@ namespace Ui
     class MainWindow;
 }
 
+class SimulationScene;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -17,5 +19,6 @@ public:
 
 private:
     Ui::MainWindow* m_ui;
+    SimulationScene* m_simulationScene;
 };
 
