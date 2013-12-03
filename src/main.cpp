@@ -1,4 +1,5 @@
 #include "ui/main_window.hpp"
+#include "ui/statistics_window.hpp"
 
 #include <QApplication>
 
@@ -11,10 +12,14 @@ int main(int argc, char* argv[])
     MainWindow* mainWindow = new MainWindow();
     mainWindow->show();
 
+    StatisticsWindow* statisticsWindow = new StatisticsWindow();
+    statisticsWindow->show();
+
     int exitCode = 0;
     exitCode = app->exec();
 
     delete mainWindow;
+    delete statisticsWindow;
     delete app;
 
     return exitCode;
