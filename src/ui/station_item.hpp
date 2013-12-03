@@ -19,6 +19,8 @@ public:
 
     void updateInfo(const Station& stationInfo);
 
+    QRectF getBaseRect() const;
+
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
     virtual QRectF boundingRect() const override;

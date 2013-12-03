@@ -79,14 +79,20 @@ QVariant StationItem::itemChange(QGraphicsItem::GraphicsItemChange change, const
 
 QRectF StationItem::boundingRect() const
 {
-    QSizeF baseSize = getBaseSize();
-
-    QRectF boundingRect(QPointF(0, 0), baseSize);
-    boundingRect.translate(-baseSize.width() / 2.0, -baseSize.height() / 2.0);
+    QRectF boundingRect = getBaseRect();
     boundingRect.adjust(-SELECTION_MARKER_SIZE, -SELECTION_MARKER_SIZE,
                         SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
-
     return boundingRect;
+}
+
+QRectF StationItem::getBaseRect() const
+{
+    QSizeF baseSize = getBaseSize();
+
+    QRectF baseRect(QPointF(0, 0), baseSize);
+    baseRect.translate(-baseSize.width() / 2.0, -baseSize.height() / 2.0);
+
+    return baseRect;
 }
 
 QSizeF StationItem::getBaseSize() const

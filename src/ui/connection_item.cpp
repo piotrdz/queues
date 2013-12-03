@@ -120,6 +120,46 @@ QRectF ConnectionItem::boundingRect() const
         .adjusted(-extra, -extra, extra, extra);
 }
 
+QPointF ConnectionItem::computeSourcePoint() const
+{
+    QPolygonF sourceRect = mapFromItem(m_source, m_source->getBaseRect());
+
+    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
+
+    for (int i = 0; i < sourceRect.size() - 1; ++i)
+    {
+        QLineF boundLine(sourceRect.at(i), sourceRect.at(i+1));
+        QPointF intersectionPoint;
+        QLineF::IntersectType intersectType = connectionLine.intersect(boundLine, &intersectionPoint);
+        if (intersectType == QLineF::BoundedIntersection)
+        {
+            connectionLine = QLineF(intersectionPoint, m_destinationPoint);
+        }
+    }
+
+    return connectionLine.p1();
+}
+
+QPointF ConnectionItem::computeDestinationPoint() const
+{
+    QPolygonF destintionRect = mapFromItem(m_destination, m_destination->getBaseRect());
+
+    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
+
+    for (int i = 0; i < destintionRect.size() - 1; ++i)
+    {
+        QLineF boundLine(destintionRect.at(i), destintionRect.at(i+1));
+        QPointF intersectionPoint;
+        QLineF::IntersectType intersectType = connectionLine.intersect(boundLine, &intersectionPoint);
+        if (intersectType == QLineF::BoundedIntersection)
+        {
+            connectionLine = QLineF(m_sourcePoint, intersectionPoint);
+        }
+    }
+
+    return connectionLine.p2();
+}
+
 void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     if (m_source == nullptr || m_destination == nullptr)
@@ -127,7 +167,10 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
         return;
     }
 
-    QLineF line(m_sourcePoint, m_destinationPoint);
+    QPointF sourcePoint = computeSourcePoint();
+    QPointF destinationPoint = computeDestinationPoint();
+
+    QLineF line(sourcePoint, destinationPoint);
     if (qFuzzyCompare(line.length(), 0.0))
     {
         return;
@@ -138,10 +181,10 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 
     double angle = std::atan2(line.dx(), line.dy());
 
-    QPointF destArrowP1 = m_destinationPoint - QPointF( sin(angle - M_PI / 8.0) * ARROW_SIZE,
-                                                        cos(angle - M_PI / 8.0) * ARROW_SIZE);
-    QPointF destArrowP2 = m_destinationPoint - QPointF( sin(angle + M_PI / 8.0) * ARROW_SIZE,
-                                                        cos(angle + M_PI / 8.0) * ARROW_SIZE);
+    QPointF destArrowP1 = destinationPoint - QPointF( sin(angle - M_PI / 8.0) * ARROW_SIZE,
+                                                      cos(angle - M_PI / 8.0) * ARROW_SIZE);
+    QPointF destArrowP2 = destinationPoint - QPointF( sin(angle + M_PI / 8.0) * ARROW_SIZE,
+                                                      cos(angle + M_PI / 8.0) * ARROW_SIZE);
 
     painter->setBrush(Qt::black);
     painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);

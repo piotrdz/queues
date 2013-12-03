@@ -23,6 +23,9 @@ public:
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 private:
+    QPointF computeSourcePoint() const;
+    QPointF computeDestinationPoint() const;
+
     StationItem* m_source;
     StationItem* m_destination;
     QPointF m_sourcePoint;
