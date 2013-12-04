@@ -21,14 +21,7 @@ FIND_PATH(QWT_INCLUDE_DIR NAMES qwt.h PATHS
   PATH_SUFFIXES qwt-qt4 qwt qwt5
   )
 
-IF(QWT_DEBUG)
-  SET(QWT_NAMES qwtd qwtd5 qwtd-qt4 qwtd5-qt4)
-ELSE()
-  SET(QWT_NAMES qwt qwt5 qwt-qt4 qwt5-qt4)
-ENDIF()
-
-
-FIND_LIBRARY(QWT_LIBRARY NAMES ${QWT_NAMES} PATHS
+FIND_LIBRARY(QWT_LIBRARY NAMES qwt qwt5 qwt-qt4 qwt5-qt4 PATHS
   /usr/lib
   /usr/local/lib
   "$ENV{LIB_DIR}/lib"

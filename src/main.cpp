@@ -1,3 +1,5 @@
+#include "engine/event.hpp"
+
 #include "ui/main_window.hpp"
 #include "ui/statistics_window.hpp"
 
@@ -7,6 +9,8 @@ int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE(resources);
 
+    qRegisterMetaType<Event>("Event");
+
     QApplication* app = new QApplication(argc, argv);
 
     MainWindow* mainWindow = new MainWindow();
@@ -14,6 +18,8 @@ int main(int argc, char* argv[])
 
     StatisticsWindow* statisticsWindow = new StatisticsWindow();
     statisticsWindow->show();
+
+    mainWindow->setStatisticsWindow(statisticsWindow);
 
     int exitCode = 0;
     exitCode = app->exec();

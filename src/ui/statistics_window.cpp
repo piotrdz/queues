@@ -4,6 +4,8 @@
 
 #include <qwt_plot_curve.h>
 
+#include <QDebug>
+
 #include <cmath>
 
 
@@ -89,4 +91,9 @@ void StatisticsWindow::animationStep()
     m_curve2->setSamples(m_curve2Samples);
 
     m_ui->plotWidget->replot();
+}
+
+void StatisticsWindow::newEvent(Event event)
+{
+    qDebug() << "New event at statistics window!";
 }

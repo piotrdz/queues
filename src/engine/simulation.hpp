@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/event.hpp"
 #include "engine/connection.hpp"
 #include "engine/station.hpp"
 
@@ -14,8 +15,10 @@ public:
     void addConnection(const Connection& connection);
     bool check();
 
-    void simulateNextStep();
-    bool finished();
+    void reset();
+    Event simulateNextStep();
+    double getCurrentTime();
+    double getTimeToNextStep();
 
 private:
     double m_currentTime;

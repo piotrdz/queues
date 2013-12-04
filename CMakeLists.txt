@@ -36,19 +36,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Widgets REQUIRED)
-
-if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
-    set(QWT_DEBUG 1)
-endif()
-
 find_package(Qwt REQUIRED)
 
 include_directories(
     src
     ${QWT_INCLUDE_DIR}
 )
-
-# app
 
 set(queues_SOURCES
     src/main.cpp
@@ -58,6 +51,7 @@ set(queues_SOURCES
     src/ui/connection_item.cpp
     src/ui/main_window.cpp
     src/ui/simulation_scene.cpp
+    src/ui/simulation_thread.cpp
     src/ui/station_item.cpp
     src/ui/statistics_window.cpp
 )

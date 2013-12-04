@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/event.hpp"
+
 #include <QTimer>
 #include <QWidget>
 
@@ -18,6 +20,7 @@ public:
     virtual ~StatisticsWindow();
 
 private slots:
+    void newEvent(Event event);
     void testButtonClicked();
     void animationStep();
 

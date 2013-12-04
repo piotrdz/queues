@@ -21,13 +21,26 @@ bool Simulation::check()
     return true;
 }
 
-void Simulation::simulateNextStep()
+void Simulation::reset()
 {
+    m_currentTime = 0.0;
     // TODO
 }
 
-bool Simulation::finished()
+Event Simulation::simulateNextStep()
+{
+    m_currentTime += getTimeToNextStep();
+    // TODO
+    return Event();
+}
+
+double Simulation::getCurrentTime()
+{
+    return m_currentTime;
+}
+
+double Simulation::getTimeToNextStep()
 {
     // TODO
-    return true;
+    return 0.5;
 }
