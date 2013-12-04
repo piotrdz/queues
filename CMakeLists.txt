@@ -22,7 +22,11 @@ endif()
 set(CMAKE_MODULE_PATH "${queues_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE debug)
+    if(WIN32)
+        set(CMAKE_BUILD_TYPE release)
+    else()
+        set(CMAKE_BUILD_TYPE debug)
+    endif()
 endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CXX11_FLAGS} -O2 -Wall")
@@ -32,6 +36,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Widgets REQUIRED)
+
+if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
+    set(QWT_DEBUG 1)
+endif()
+
 find_package(Qwt REQUIRED)
 
 include_directories(

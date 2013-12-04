@@ -17,14 +17,23 @@ FIND_PATH(QWT_INCLUDE_DIR NAMES qwt.h PATHS
   /usr/local/include
   "$ENV{LIB_DIR}/include"
   "$ENV{INCLUDE}"
+  "${QWT_PATH}/include"
   PATH_SUFFIXES qwt-qt4 qwt qwt5
   )
 
-FIND_LIBRARY(QWT_LIBRARY NAMES qwt qwt5 qwt-qt4 qwt5-qt4 PATHS
+IF(QWT_DEBUG)
+  SET(QWT_NAMES qwtd qwtd5 qwtd-qt4 qwtd5-qt4)
+ELSE()
+  SET(QWT_NAMES qwt qwt5 qwt-qt4 qwt5-qt4)
+ENDIF()
+
+
+FIND_LIBRARY(QWT_LIBRARY NAMES ${QWT_NAMES} PATHS
   /usr/lib
   /usr/local/lib
   "$ENV{LIB_DIR}/lib"
   "$ENV{LIB}/lib"
+  "${QWT_PATH}/lib"
   )
 
 IF (QWT_INCLUDE_DIR AND QWT_LIBRARY)
