@@ -49,6 +49,7 @@ set(queues_SOURCES
     src/engine/simulation.cpp
 
     src/ui/connection_item.cpp
+    src/ui/distribution_params_widget.cpp
     src/ui/main_window.cpp
     src/ui/simulation_scene.cpp
     src/ui/simulation_thread.cpp
@@ -61,6 +62,7 @@ qt5_add_resources(queues_RESOURCES
 )
 
 qt5_wrap_ui(queues_FORMS
+    forms/distribution_params_widget.ui
     forms/main_window.ui
     forms/statistics_window.ui
 )
