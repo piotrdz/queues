@@ -34,7 +34,7 @@ MainWindow::MainWindow()
     m_simulationThread->start();
 
     m_simulationScene = new SimulationScene(this);
-    m_ui->simulationView->setScene(m_simulationScene);
+    m_ui->simulationView->setSimulationScene(m_simulationScene);
 
     m_updateInfoTimer = new QTimer(this);
     m_updateInfoTimer->start(40);
@@ -83,6 +83,12 @@ MainWindow::MainWindow()
 
     connect(m_simulationScene, SIGNAL(selectionChanged()),
             this, SLOT(updateConnectionParams()));
+
+    connect(m_simulationScene, SIGNAL(stationAddRequest(const QPointF&)),
+            this, SLOT(addNewStation(const QPointF&)));
+
+    connect(m_simulationScene, SIGNAL(connectionAddRequest(int, int)),
+            this, SLOT(addNewConnection(int, int)));
 
     connectStationParamsWidgets();
     connectConnectionParamsWidgets();
@@ -185,19 +191,19 @@ void MainWindow::setSampleSimulationInstance()
 {
     SimulationInstance instance;
 
-    Station station1Info;
-    station1Info.id = 1;
-    station1Info.processorCount = 1;
-    station1Info.queueLength = 2;
-    station1Info.position = QPointF(-80, -80);
-    instance.stations.append(station1Info);
+    Station station1;
+    station1.id = 1;
+    station1.processorCount = 1;
+    station1.queueLength = 2;
+    station1.position = QPointF(-80, -80);
+    instance.stations.append(station1);
 
-    Station station2Info;
-    station2Info.id = 2;
-    station2Info.processorCount = 2;
-    station2Info.queueLength = 3;
-    station2Info.position = QPointF(80, 80);
-    instance.stations.append(station2Info);
+    Station station2;
+    station2.id = 2;
+    station2.processorCount = 2;
+    station2.queueLength = 3;
+    station2.position = QPointF(80, 80);
+    instance.stations.append(station2);
 
     Connection connectionInfo;
     connectionInfo.from = 1;
@@ -242,7 +248,7 @@ void MainWindow::updateStationParams()
 
         disconnectStationParamsWidgets();
 
-        Station stationParams = m_simulation->getStation(id);
+        StationParams stationParams = m_simulation->getStation(id);
 
         if (stationParams.queueType == QueueType::Fifo)
         {
@@ -277,7 +283,7 @@ void MainWindow::stationParamsChanged()
 {
     int id = m_simulationScene->getSelectedStationId();
 
-    Station stationParams;
+    StationParams stationParams;
 
     if (m_ui->queueTypeComboBox->currentIndex() == 0)
     {
@@ -335,6 +341,33 @@ void MainWindow::connectionParamsChanged()
     int weight = m_ui->connectionWeightSpinBox->value();
     m_simulation->changeConnectionWeight(selectedConnection.first, selectedConnection.second, weight);
     m_simulationScene->changeConnectionWeight(selectedConnection.first, selectedConnection.second, weight);
+}
+
+void MainWindow::addNewStation(const QPointF& pos)
+{
+    Station newStation;
+    newStation.id = m_simulation->getNextStationId();
+    newStation.queueType = QueueType::Fifo;
+    newStation.queueLength = 3;
+    newStation.processorCount = 1;
+    newStation.position = pos;
+
+    m_simulation->addStation(newStation);
+    m_simulationScene->addStation(newStation);
+}
+
+void MainWindow::addNewConnection(int from, int to)
+{
+    if (m_simulation->isConnectionPossible(from, to))
+    {
+        Connection newConnection;
+        newConnection.from = from;
+        newConnection.to = to;
+        newConnection.weight = 1;
+
+        m_simulation->addConnection(newConnection);
+        m_simulationScene->addConnection(newConnection);
+    }
 }
 
 void MainWindow::resetClicked()

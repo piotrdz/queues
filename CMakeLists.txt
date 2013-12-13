@@ -53,6 +53,7 @@ set(queues_SOURCES
     src/ui/main_window.cpp
     src/ui/simulation_scene.cpp
     src/ui/simulation_thread.cpp
+    src/ui/simulation_view.cpp
     src/ui/station_item.cpp
     src/ui/statistics_window.cpp
 )

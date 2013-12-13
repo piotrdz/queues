@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QGraphicsView" name="simulationView">
+     <widget class="SimulationView" name="simulationView">
       <property name="renderHints">
        <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
       </property>
@@ -447,6 +447,11 @@
    <extends>QFrame</extends>
    <header>ui/distribution_params_widget.hpp</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SimulationView</class>
+   <extends>QGraphicsView</extends>
+   <header>ui/simulation_view.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

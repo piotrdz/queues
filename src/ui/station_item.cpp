@@ -16,7 +16,8 @@ namespace
 }
 
 
-StationItem::StationItem()
+StationItem::StationItem(const Station& station)
+ : m_stationInfo(station)
 {
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
@@ -47,10 +48,15 @@ StationItem::~StationItem()
     Q_ASSERT(m_connections.isEmpty());
 }
 
-void StationItem::updateInfo(const Station& stationInfo)
+void StationItem::updateParams(const StationParams& stationParams)
 {
     prepareGeometryChange();
-    m_stationInfo = stationInfo;
+    m_stationInfo.setParams(stationParams);
+}
+
+int StationItem::getId() const
+{
+    return m_stationInfo.id;
 }
 
 void StationItem::addConnection(ConnectionItem* edge)

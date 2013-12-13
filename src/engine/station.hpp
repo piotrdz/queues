@@ -10,20 +10,32 @@ enum class QueueType
     Random
 };
 
-struct Station
+struct StationParams
 {
-    int id;
     QueueType queueType;
     int queueLength;
     int processorCount;
     Distribution serviceTimeDistribution;
     QPointF position;
 
-    Station()
-     : id(0)
-     , queueType(QueueType::Fifo)
+    StationParams()
+     : queueType(QueueType::Fifo)
      , queueLength(0)
      , processorCount(0)
    {}
+};
+
+struct Station : public StationParams
+{
+    int id;
+
+    Station()
+     : id(0)
+    {}
+
+    void setParams(const StationParams& params)
+    {
+        *(static_cast<StationParams*>(this)) = params;
+    }
 };
 

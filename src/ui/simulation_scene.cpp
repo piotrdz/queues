@@ -8,6 +8,7 @@
 
 SimulationScene::SimulationScene(QObject* parent)
  : QGraphicsScene(parent)
+ , m_newConnection(nullptr)
 {
 }
 
@@ -43,33 +44,30 @@ void SimulationScene::setSimulationInstance(const SimulationInstance& simulation
     }
 }
 
-void SimulationScene::addStation(const Station& stationInfo)
+void SimulationScene::addStation(const Station& station)
 {
-    StationItem* stationItem = new StationItem();
+    Q_ASSERT(getStationItemById(station.id) == nullptr);
+
+    StationItem* stationItem = new StationItem(station);
     addItem(stationItem);
-    stationItem->updateInfo(stationInfo);
-    stationItem->setPos(stationInfo.position);
-    m_stationItems[stationInfo.id] = stationItem;
+    stationItem->setPos(station.position);
+    m_stationItems.append(stationItem);
 }
 
-void SimulationScene::addConnection(const Connection& connectionInfo)
+void SimulationScene::addConnection(const Connection& connection)
 {
-    StationItem* source = nullptr;
-    if (m_stationItems.contains(connectionInfo.from))
-    {
-        source = m_stationItems[connectionInfo.from];
-    }
+    Q_ASSERT(getConnectionItemByIds(connection.from, connection.to) == nullptr);
 
-    StationItem* destination = nullptr;
-    if (m_stationItems.contains(connectionInfo.to))
-    {
-        destination = m_stationItems[connectionInfo.to];
-    }
+    StationItem* source = getStationItemById(connection.from);
+    Q_ASSERT(source != nullptr);
+
+    StationItem* destination = getStationItemById(connection.to);
+    Q_ASSERT(destination != nullptr);
 
     ConnectionItem* connectionItem = new ConnectionItem(source, destination);
     addItem(connectionItem);
 
-    m_connectionItems[qMakePair<int, int>(connectionInfo.from, connectionInfo.to)] = connectionItem;
+    m_connectionItems.append(connectionItem);
 }
 
 int SimulationScene::getSelectedStationId() const
@@ -82,11 +80,11 @@ int SimulationScene::getSelectedStationId() const
 
     QGraphicsItem* selectedItem = selectedItems.at(0);
 
-    for (auto it = m_stationItems.begin(); it != m_stationItems.end(); ++it)
+    for (StationItem* stationItem : m_stationItems)
     {
-        if (it.value() == selectedItem)
+        if (stationItem == selectedItem)
         {
-            return it.key();
+            return stationItem->getId();
         }
     }
 
@@ -103,31 +101,129 @@ QPair<int, int> SimulationScene::getSelectedConnection() const
 
     QGraphicsItem* selectedItem = selectedItems.at(0);
 
-    for (auto it = m_connectionItems.begin(); it != m_connectionItems.end(); ++it)
+    for (ConnectionItem* connectionItem : m_connectionItems)
     {
-        if (it.value() == selectedItem)
+        if (connectionItem == selectedItem)
         {
-            return it.key();
+            if (connectionItem->getSource() != nullptr && connectionItem->getDestination() != nullptr)
+            {
+                int sourceId = connectionItem->getSource()->getId();
+                int destinationId = connectionItem->getDestination()->getId();
+                return qMakePair<int, int>(sourceId, destinationId);
+            }
         }
     }
 
     return qMakePair<int, int>(-1, -1);
 }
 
-void SimulationScene::changeStation(int id, const Station& stationParams)
+void SimulationScene::changeStation(int id, const StationParams& stationParams)
 {
-    if (m_stationItems.contains(id))
+    StationItem* stationItem = getStationItemById(id);
+
+    if (stationItem != nullptr)
     {
-        StationItem* stationItem = m_stationItems[id];
-        stationItem->updateInfo(stationParams);
+        stationItem->updateParams(stationParams);
     }
 }
 
 void SimulationScene::changeConnectionWeight(int from, int to, int weight)
 {
-    if (m_connectionItems.contains(qMakePair<int, int>(from, to)))
+    ConnectionItem* connectionItem = getConnectionItemByIds(from, to);
+
+    if (connectionItem != nullptr)
     {
-        ConnectionItem* connectionItem = m_connectionItems[qMakePair<int, int>(from, to)];
         connectionItem->updateWeight(weight);
     }
 }
+
+void SimulationScene::processMousePress(const QPointF& scenePos)
+{
+    StationItem* stationItem = getStationItemAtPos(scenePos);
+    if (stationItem != nullptr)
+    {
+        m_newConnection = new ConnectionItem(stationItem, nullptr, true);
+        m_newConnection->setMovePoint(scenePos);
+        addItem(m_newConnection);
+    }
+    else
+    {
+        emit stationAddRequest(scenePos);
+    }
+}
+
+void SimulationScene::processMouseMove(const QPointF& scenePos)
+{
+    if (m_newConnection != nullptr)
+    {
+        m_newConnection->setMovePoint(scenePos);
+    }
+}
+
+void SimulationScene::processMouseRelease(const QPointF& scenePos)
+{
+    if (m_newConnection != nullptr)
+    {
+        StationItem* stationItem = getStationItemAtPos(scenePos);
+        if (stationItem != nullptr)
+        {
+            emit connectionAddRequest(m_newConnection->getSource()->getId(), stationItem->getId());
+        }
+
+        removeItem(m_newConnection);
+        delete m_newConnection;
+        m_newConnection = nullptr;
+    }
+}
+
+ConnectionItem* SimulationScene::getConnectionItemByIds(int from, int to)
+{
+    for (ConnectionItem* connectionItem : m_connectionItems)
+    {
+        if (connectionItem->getSource() != nullptr && connectionItem->getDestination() != nullptr)
+        {
+            if (connectionItem->getSource()->getId() == from && connectionItem->getDestination()->getId() == to)
+            {
+                return connectionItem;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+StationItem* SimulationScene::getStationItemById(int id)
+{
+    for (StationItem* stationItem : m_stationItems)
+    {
+        if (stationItem->getId() == id)
+        {
+            return stationItem;
+        }
+    }
+
+    return nullptr;
+}
+
+StationItem* SimulationScene::getStationItemAtPos(const QPointF& pos)
+{
+    QList<QGraphicsItem*> items = QGraphicsScene::items(pos);
+    if (items.size() < 1)
+    {
+        return nullptr;
+    }
+
+    for (QGraphicsItem* item : items)
+    {
+        for (StationItem* stationItem : m_stationItems)
+        {
+            if (stationItem == item)
+            {
+                return stationItem;
+            }
+        }
+    }
+
+    return nullptr;
+}
+

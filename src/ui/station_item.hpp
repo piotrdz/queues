@@ -11,13 +11,14 @@ class ConnectionItem;
 class StationItem : public QGraphicsItem
 {
 public:
-    StationItem();
+    StationItem(const Station& station);
     virtual ~StationItem();
 
     void addConnection(ConnectionItem* edge);
     void removeConnection(ConnectionItem* edge);
 
-    void updateInfo(const Station& stationInfo);
+    void updateParams(const StationParams& stationParams);
+    int getId() const;
 
     QRectF getBaseRect() const;
 

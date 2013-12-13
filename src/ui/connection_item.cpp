@@ -2,7 +2,6 @@
 
 #include "ui/station_item.hpp"
 
-#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 #include <cmath>
@@ -17,10 +16,11 @@ namespace
 }
 
 
-ConnectionItem::ConnectionItem(StationItem* source, StationItem* destination)
+ConnectionItem::ConnectionItem(StationItem* source, StationItem* destination, bool moveMode)
  : m_source(source)
  , m_destination(destination)
  , m_weight(1)
+ , m_moveMode(moveMode)
 {
     setFlag(QGraphicsItem::ItemIsSelectable);
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -99,10 +99,63 @@ void ConnectionItem::setDestination(StationItem* destination)
     }
 }
 
-void ConnectionItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ConnectionItem::updateWeight(int weight)
 {
-    QPointF sourcePoint = computeSourcePoint();
-    QPointF destinationPoint = computeDestinationPoint();
+    prepareGeometryChange();
+
+    m_weight = weight;
+}
+
+void ConnectionItem::adjust()
+{
+    if (m_source == nullptr || (!m_moveMode && m_destination == nullptr))
+    {
+        return;
+    }
+
+    QPointF destinationPoint = m_moveMode ? m_moveDestinationPoint : mapFromItem(m_destination, 0, 0);
+
+    QLineF line(mapFromItem(m_source, 0, 0), destinationPoint);
+
+    prepareGeometryChange();
+
+    m_sourcePoint = line.p1();
+    m_destinationPoint = line.p2();
+}
+
+void ConnectionItem::setMovePoint(const QPointF& moveDestiationPoint)
+{
+    prepareGeometryChange();
+
+    m_moveDestinationPoint = mapFromParent(moveDestiationPoint);
+
+    adjust();
+}
+
+QRectF ConnectionItem::boundingRect() const
+{
+    if (m_source == nullptr || (!m_moveMode && m_destination == nullptr))
+    {
+        return QRectF();
+    }
+
+    qreal extra = (PEN_WIDTH + ARROW_SIZE) / 2.0;
+
+    QRectF weightLabelRect = getWeightLabelRect();
+
+    QPointF destinationPoint = getDestinationPoint();
+
+    return QRectF(m_sourcePoint, QSizeF(destinationPoint.x() - m_sourcePoint.x(),
+                                        destinationPoint.y() - m_sourcePoint.y()))
+        .normalized()
+        .adjusted(-extra, -extra, extra, extra)
+        .united(weightLabelRect);
+}
+
+QPainterPath ConnectionItem::shape() const
+{
+    QPointF sourcePoint = getDrawSourcePoint();
+    QPointF destinationPoint = getDrawDestinationPoint();
 
     QLineF line(sourcePoint, destinationPoint);
 
@@ -114,61 +167,22 @@ void ConnectionItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     QPolygonF polygon;
     polygon << (line.p1() + deltaNor) << (line.p1() - deltaNor) << (line.p2() - deltaNor) << (line.p2() + deltaNor);
 
-    if (polygon.containsPoint(event->pos(), Qt::OddEvenFill))
-    {
-        QGraphicsItem::mousePressEvent(event);
-    }
-    else
-    {
-        event->ignore();
-    }
+    QPainterPath path;
+    path.addPolygon(polygon);
+
+    return path;
 }
 
-void ConnectionItem::updateWeight(int weight)
+QPointF ConnectionItem::getDestinationPoint() const
 {
-    prepareGeometryChange();
-
-    m_weight = weight;
+    return m_moveMode ? m_moveDestinationPoint : m_destinationPoint;
 }
 
-void ConnectionItem::adjust()
-{
-    if (m_source == nullptr || m_destination == nullptr)
-    {
-        return;
-    }
-
-    QLineF line(mapFromItem(m_source, 0, 0), mapFromItem(m_destination, 0, 0));
-
-    prepareGeometryChange();
-
-    m_sourcePoint = line.p1();
-    m_destinationPoint = line.p2();
-}
-
-QRectF ConnectionItem::boundingRect() const
-{
-    if (m_source == nullptr || m_destination == nullptr)
-    {
-        return QRectF();
-    }
-
-    qreal extra = (PEN_WIDTH + ARROW_SIZE) / 2.0;
-
-    QRectF weightLabelRect = computeWeightLabelRect();
-
-    return QRectF(m_sourcePoint, QSizeF(m_destinationPoint.x() - m_sourcePoint.x(),
-                                        m_destinationPoint.y() - m_sourcePoint.y()))
-        .normalized()
-        .adjusted(-extra, -extra, extra, extra)
-        .united(weightLabelRect);
-}
-
-QPointF ConnectionItem::computeSourcePoint() const
+QPointF ConnectionItem::getDrawSourcePoint() const
 {
     QPolygonF sourceRect = mapFromItem(m_source, m_source->getBaseRect());
 
-    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
+    QLineF connectionLine(m_sourcePoint, getDestinationPoint());
 
     for (int i = 0; i < sourceRect.size() - 1; ++i)
     {
@@ -177,22 +191,27 @@ QPointF ConnectionItem::computeSourcePoint() const
         QLineF::IntersectType intersectType = connectionLine.intersect(boundLine, &intersectionPoint);
         if (intersectType == QLineF::BoundedIntersection)
         {
-            connectionLine = QLineF(intersectionPoint, m_destinationPoint);
+            connectionLine = QLineF(intersectionPoint, getDestinationPoint());
         }
     }
 
     return connectionLine.p1();
 }
 
-QPointF ConnectionItem::computeDestinationPoint() const
+QPointF ConnectionItem::getDrawDestinationPoint() const
 {
-    QPolygonF destintionRect = mapFromItem(m_destination, m_destination->getBaseRect());
-
-    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
-
-    for (int i = 0; i < destintionRect.size() - 1; ++i)
+    if (m_moveMode)
     {
-        QLineF boundLine(destintionRect.at(i), destintionRect.at(i+1));
+        return m_destinationPoint;
+    }
+
+    QPolygonF destinationRect = mapFromItem(m_destination, m_destination->getBaseRect());
+
+    QLineF connectionLine(m_sourcePoint, getDestinationPoint());
+
+    for (int i = 0; i < destinationRect.size() - 1; ++i)
+    {
+        QLineF boundLine(destinationRect.at(i), destinationRect.at(i+1));
         QPointF intersectionPoint;
         QLineF::IntersectType intersectType = connectionLine.intersect(boundLine, &intersectionPoint);
         if (intersectType == QLineF::BoundedIntersection)
@@ -204,9 +223,9 @@ QPointF ConnectionItem::computeDestinationPoint() const
     return connectionLine.p2();
 }
 
-QRectF ConnectionItem::computeWeightLabelRect() const
+QRectF ConnectionItem::getWeightLabelRect() const
 {
-    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
+    QLineF connectionLine(m_sourcePoint, getDestinationPoint());
 
     QFontMetricsF metrics(m_weightFont);
 
@@ -244,13 +263,13 @@ QRectF ConnectionItem::computeWeightLabelRect() const
 
 void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    if (m_source == nullptr || m_destination == nullptr)
+    if (m_source == nullptr || (!m_moveMode && m_destination == nullptr))
     {
         return;
     }
 
-    QPointF sourcePoint = computeSourcePoint();
-    QPointF destinationPoint = computeDestinationPoint();
+    QPointF sourcePoint = getDrawSourcePoint();
+    QPointF destinationPoint = getDrawDestinationPoint();
 
     QLineF line(sourcePoint, destinationPoint);
     if (qFuzzyCompare(line.length(), 0.0))
@@ -282,7 +301,7 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
     painter->setBrush(Qt::black);
     painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);
 
-    QRectF weightLabelRect = computeWeightLabelRect();
+    QRectF weightLabelRect = getWeightLabelRect();
 
     painter->setFont(m_weightFont);
     painter->drawText(weightLabelRect, Qt::AlignCenter, QString().setNum(m_weight));

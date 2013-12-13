@@ -1,16 +1,18 @@
 #pragma once
 
 #include <QGraphicsScene>
-#include <QMap>
+#include <QList>
 
 class Connection;
 class ConnectionItem;
 class Station;
+class StationParams;
 class StationItem;
 class SimulationInstance;
 
 class SimulationScene : public QGraphicsScene
 {
+    Q_OBJECT
 public:
     explicit SimulationScene(QObject* parent);
     virtual ~SimulationScene();
@@ -25,10 +27,26 @@ public:
     int getSelectedStationId() const;
     QPair<int, int> getSelectedConnection() const;
 
-    void changeStation(int id, const Station& stationParams);
+    void changeStation(int id, const StationParams& stationParams);
     void changeConnectionWeight(int from, int to, int weight);
 
+    void processMousePress(const QPointF& scenePos);
+    void processMouseMove(const QPointF& scenePos);
+    void processMouseRelease(const QPointF& scenePos);
+
+signals:
+    void stationAddRequest(const QPointF& pos);
+    void connectionAddRequest(int from, int to);
+
 private:
-    QMap<int, StationItem*> m_stationItems;
-    QMap<QPair<int, int>, ConnectionItem*> m_connectionItems;
+    StationItem* getStationItemById(int id);
+    StationItem* getStationItemAtPos(const QPointF& pos);
+    ConnectionItem* getConnectionItemByIds(int from, int to);
+
+private:
+    QList<StationItem*> m_stationItems;
+    QList<ConnectionItem*> m_connectionItems;
+    ConnectionItem* m_newConnection;
+    int m_nextStationId;
+    QObject* m_viewEventFilter;
 };

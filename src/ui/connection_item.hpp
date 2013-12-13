@@ -8,7 +8,7 @@ class StationItem;
 class ConnectionItem : public QGraphicsItem
 {
 public:
-    ConnectionItem(StationItem* source, StationItem* destination);
+    ConnectionItem(StationItem* source, StationItem* destination, bool moveMode = false);
     virtual ~ConnectionItem();
 
     StationItem* getSource();
@@ -21,17 +21,18 @@ public:
 
     void adjust();
 
-    virtual QRectF boundingRect() const;
+    void setMovePoint(const QPointF& moveDestiationPoint);
 
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    virtual QRectF boundingRect() const override;
+    virtual QPainterPath shape() const override;
 
-protected:
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
-    QPointF computeSourcePoint() const;
-    QPointF computeDestinationPoint() const;
-    QRectF computeWeightLabelRect() const;
+    QPointF getDestinationPoint() const;
+    QPointF getDrawSourcePoint() const;
+    QPointF getDrawDestinationPoint() const;
+    QRectF getWeightLabelRect() const;
 
     StationItem* m_source;
     StationItem* m_destination;
@@ -39,4 +40,6 @@ private:
     QPointF m_destinationPoint;
     int m_weight;
     QFont m_weightFont;
+    bool m_moveMode;
+    QPointF m_moveDestinationPoint;
 };

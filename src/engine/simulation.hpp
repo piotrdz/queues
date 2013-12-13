@@ -18,11 +18,15 @@ public:
 
     void changeArrivalDistribution(const Distribution& distribution);
 
+    int getNextStationId() const;
     Station getStation(int id) const;
-    void changeStation(int id, const Station& stationParams);
+    void changeStation(int id, const StationParams& stationParams);
 
     int getConnectionWeight(int from, int to) const;
     void changeConnectionWeight(int from, int to, int weight);
+
+    bool connectionExists(int from, int to) const;
+    bool isConnectionPossible(int from, int to) const;
 
     void reset();
     Event simulateNextStep();
@@ -32,4 +36,5 @@ public:
 private:
     double m_currentTime;
     SimulationInstance m_instance;
+    int m_nextStationId;
 };
