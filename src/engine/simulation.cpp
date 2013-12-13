@@ -105,6 +105,44 @@ bool Simulation::connectionExists(int from, int to) const
     return false;
 }
 
+void Simulation::removeStation(int id)
+{
+    for (auto stationIt = m_instance.stations.begin(); stationIt != m_instance.stations.end(); ++stationIt)
+    {
+        if ((*stationIt).id == id)
+        {
+            m_instance.stations.erase(stationIt);
+            break;
+        }
+    }
+
+    auto connectionIt = m_instance.connections.begin();
+    while (connectionIt != m_instance.connections.end())
+    {
+        if ((*connectionIt).from == id || (*connectionIt).to == id)
+        {
+            m_instance.connections.erase(connectionIt);
+            break;
+        }
+        else
+        {
+            ++connectionIt;
+        }
+    }
+}
+
+void Simulation::removeConnection(int from, int to)
+{
+    for (auto connectionIt = m_instance.connections.begin(); connectionIt != m_instance.connections.end(); ++connectionIt)
+    {
+        if ((*connectionIt).from == from && (*connectionIt).to == to)
+        {
+            m_instance.connections.erase(connectionIt);
+            break;
+        }
+    }
+}
+
 bool Simulation::isConnectionPossible(int from, int to) const
 {
     // TODO cykle...

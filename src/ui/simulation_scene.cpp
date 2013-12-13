@@ -5,6 +5,8 @@
 #include "ui/connection_item.hpp"
 #include "ui/station_item.hpp"
 
+#include <QKeyEvent>
+
 
 SimulationScene::SimulationScene(QObject* parent)
  : QGraphicsScene(parent)
@@ -105,12 +107,9 @@ QPair<int, int> SimulationScene::getSelectedConnection() const
     {
         if (connectionItem == selectedItem)
         {
-            if (connectionItem->getSource() != nullptr && connectionItem->getDestination() != nullptr)
-            {
-                int sourceId = connectionItem->getSource()->getId();
-                int destinationId = connectionItem->getDestination()->getId();
-                return qMakePair<int, int>(sourceId, destinationId);
-            }
+            int sourceId = connectionItem->getSource()->getId();
+            int destinationId = connectionItem->getDestination()->getId();
+            return qMakePair<int, int>(sourceId, destinationId);
         }
     }
 
@@ -137,7 +136,53 @@ void SimulationScene::changeConnectionWeight(int from, int to, int weight)
     }
 }
 
-void SimulationScene::processMousePress(const QPointF& scenePos)
+void SimulationScene::removeStation(int id)
+{
+    for (auto stationIt = m_stationItems.begin(); stationIt != m_stationItems.end(); ++stationIt)
+    {
+        StationItem* stationItem = *stationIt;
+        if (stationItem->getId() == id)
+        {
+            removeItem(stationItem);
+            delete stationItem;
+            m_stationItems.erase(stationIt);
+            break;
+        }
+    }
+
+    auto connectionIt = m_connectionItems.begin();
+    while (connectionIt != m_connectionItems.end())
+    {
+        ConnectionItem* connectionItem = *connectionIt;
+        if (connectionItem->getSource() == nullptr || connectionItem->getDestination() == nullptr)
+        {
+            removeItem(connectionItem);
+            delete connectionItem;
+            connectionIt = m_connectionItems.erase(connectionIt);
+        }
+        else
+        {
+            ++connectionIt;
+        }
+    }
+}
+
+void SimulationScene::removeConnection(int from, int to)
+{
+    for (auto connectionIt = m_connectionItems.begin(); connectionIt != m_connectionItems.end(); ++connectionIt)
+    {
+        ConnectionItem* connectionItem = *connectionIt;
+        if (connectionItem->getSource()->getId() == from && connectionItem->getDestination()->getId() == to)
+        {
+            removeItem(connectionItem);
+            delete connectionItem;
+            m_connectionItems.erase(connectionIt);
+            break;
+        }
+    }
+}
+
+void SimulationScene::processCustomMousePress(const QPointF& scenePos)
 {
     StationItem* stationItem = getStationItemAtPos(scenePos);
     if (stationItem != nullptr)
@@ -152,7 +197,7 @@ void SimulationScene::processMousePress(const QPointF& scenePos)
     }
 }
 
-void SimulationScene::processMouseMove(const QPointF& scenePos)
+void SimulationScene::processCustomMouseMove(const QPointF& scenePos)
 {
     if (m_newConnection != nullptr)
     {
@@ -160,7 +205,7 @@ void SimulationScene::processMouseMove(const QPointF& scenePos)
     }
 }
 
-void SimulationScene::processMouseRelease(const QPointF& scenePos)
+void SimulationScene::processCustomMouseRelease(const QPointF& scenePos)
 {
     if (m_newConnection != nullptr)
     {
@@ -176,16 +221,38 @@ void SimulationScene::processMouseRelease(const QPointF& scenePos)
     }
 }
 
+void SimulationScene::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Delete)
+    {
+        int stationId = getSelectedStationId();
+        if (stationId != -1)
+        {
+            emit stationRemoveRequest(stationId);
+        }
+        else
+        {
+            QPair<int, int> connection = getSelectedConnection();
+            if (connection.first != -1)
+            {
+                emit connectionRemoveRequest(connection.first, connection.second);
+            }
+        }
+
+        event->ignore();
+        return;
+    }
+
+    QGraphicsScene::keyPressEvent(event);
+}
+
 ConnectionItem* SimulationScene::getConnectionItemByIds(int from, int to)
 {
     for (ConnectionItem* connectionItem : m_connectionItems)
     {
-        if (connectionItem->getSource() != nullptr && connectionItem->getDestination() != nullptr)
+        if (connectionItem->getSource()->getId() == from && connectionItem->getDestination()->getId() == to)
         {
-            if (connectionItem->getSource()->getId() == from && connectionItem->getDestination()->getId() == to)
-            {
-                return connectionItem;
-            }
+            return connectionItem;
         }
     }
 

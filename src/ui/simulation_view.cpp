@@ -28,7 +28,7 @@ void SimulationView::mousePressEvent(QMouseEvent* event)
     if (event->button() == Qt::RightButton)
     {
         m_processEventMode = true;
-        m_simulationScene->processMousePress(mapToScene(event->pos()));
+        m_simulationScene->processCustomMousePress(mapToScene(event->pos()));
         event->ignore();
         return;
     }
@@ -40,7 +40,7 @@ void SimulationView::mouseMoveEvent(QMouseEvent* event)
 {
     if (m_processEventMode)
     {
-        m_simulationScene->processMouseMove(mapToScene(event->pos()));
+        m_simulationScene->processCustomMouseMove(mapToScene(event->pos()));
         event->ignore();
         return;
     }
@@ -53,7 +53,7 @@ void SimulationView::mouseReleaseEvent(QMouseEvent* event)
     if (m_processEventMode)
     {
         m_processEventMode = false;
-        m_simulationScene->processMouseRelease(mapToScene(event->pos()));
+        m_simulationScene->processCustomMouseRelease(mapToScene(event->pos()));
         event->ignore();
         return;
     }

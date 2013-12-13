@@ -30,13 +30,22 @@ public:
     void changeStation(int id, const StationParams& stationParams);
     void changeConnectionWeight(int from, int to, int weight);
 
-    void processMousePress(const QPointF& scenePos);
-    void processMouseMove(const QPointF& scenePos);
-    void processMouseRelease(const QPointF& scenePos);
+    void removeStation(int id);
+    void removeConnection(int from, int to);
+
+    void processCustomMousePress(const QPointF& scenePos);
+    void processCustomMouseMove(const QPointF& scenePos);
+    void processCustomMouseRelease(const QPointF& scenePos);
 
 signals:
     void stationAddRequest(const QPointF& pos);
     void connectionAddRequest(int from, int to);
+
+    void stationRemoveRequest(int id);
+    void connectionRemoveRequest(int from, int to);
+
+protected:
+    virtual void keyPressEvent(QKeyEvent* event) override;
 
 private:
     StationItem* getStationItemById(int id);

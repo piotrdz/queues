@@ -44,6 +44,9 @@ private slots:
     void addNewStation(const QPointF& pos);
     void addNewConnection(int from, int to);
 
+    void removeStation(int id);
+    void removeConnection(int from, int to);
+
     void resetClicked();
     void startStopClicked();
     void newEvent(Event event);

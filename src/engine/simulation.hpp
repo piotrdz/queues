@@ -28,6 +28,9 @@ public:
     bool connectionExists(int from, int to) const;
     bool isConnectionPossible(int from, int to) const;
 
+    void removeStation(int id);
+    void removeConnection(int from, int to);
+
     void reset();
     Event simulateNextStep();
     double getCurrentTime();

@@ -90,6 +90,12 @@ MainWindow::MainWindow()
     connect(m_simulationScene, SIGNAL(connectionAddRequest(int, int)),
             this, SLOT(addNewConnection(int, int)));
 
+    connect(m_simulationScene, SIGNAL(stationRemoveRequest(int)),
+            this, SLOT(removeStation(int)));
+
+    connect(m_simulationScene, SIGNAL(connectionRemoveRequest(int, int)),
+            this, SLOT(removeConnection(int, int)));
+
     connectStationParamsWidgets();
     connectConnectionParamsWidgets();
 }
@@ -368,6 +374,18 @@ void MainWindow::addNewConnection(int from, int to)
         m_simulation->addConnection(newConnection);
         m_simulationScene->addConnection(newConnection);
     }
+}
+
+void MainWindow::removeStation(int id)
+{
+    m_simulation->removeStation(id);
+    m_simulationScene->removeStation(id);
+}
+
+void MainWindow::removeConnection(int from, int to)
+{
+    m_simulation->removeConnection(from, to);
+    m_simulationScene->removeConnection(from, to);
 }
 
 void MainWindow::resetClicked()
