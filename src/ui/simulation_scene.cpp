@@ -71,3 +71,34 @@ void SimulationScene::addConnection(const Connection& connectionInfo)
 
     m_connectionItems[qMakePair<int,int>(connectionInfo.from, connectionInfo.to)] = connectionItem;
 }
+
+int SimulationScene::getSelectedStationId() const
+{
+    QList<QGraphicsItem*> selectedItems = QGraphicsScene::selectedItems();
+    if (selectedItems.size() != 1)
+    {
+        return -1;
+    }
+
+    QGraphicsItem* selectedItem = selectedItems.at(0);
+
+    for (auto it = m_stationItems.begin(); it != m_stationItems.end(); ++it)
+    {
+        if (it.value() == selectedItem)
+        {
+            return it.key();
+        }
+    }
+
+    return -1;
+}
+
+void SimulationScene::changeStation(int id, const Station& stationParams)
+{
+    if (m_stationItems.contains(id))
+    {
+        StationItem* stationItem = m_stationItems[id];
+        stationItem->updateInfo(stationParams);
+    }
+}
+

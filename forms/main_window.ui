@@ -178,7 +178,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="queueLabelComboBox">
+        <widget class="QComboBox" name="queueTypeComboBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>

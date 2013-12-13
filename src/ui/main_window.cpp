@@ -53,6 +53,8 @@ MainWindow::MainWindow()
 
     setSampleSimulationInstance();
 
+    updateStationParams();
+
     connect(m_simulationThread, SIGNAL(newEvent(Event)),
             this, SLOT(newEvent(Event)));
 
@@ -74,8 +76,10 @@ MainWindow::MainWindow()
     connect(m_ui->arrivalDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
             this, SLOT(arrivalDistributionParamsChanged()));
 
-    connect(m_ui->processingDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
-            this, SLOT(processingDistributionParamsChanged()));
+    connect(m_simulationScene, SIGNAL(selectionChanged()),
+            this, SLOT(updateStationParams()));
+
+    connectStationParamsWidgets();
 }
 
 MainWindow::~MainWindow()
@@ -94,6 +98,48 @@ MainWindow::~MainWindow()
 
     delete m_updateInfoTimer;
     m_updateInfoTimer = nullptr;
+}
+
+void MainWindow::connectStationParamsWidgets()
+{
+    connect(m_ui->queueTypeComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(stationParamsChanged()));
+
+    connect(m_ui->infiniteQueueRadioButton, SIGNAL(toggled(bool)),
+            this, SLOT(stationParamsChanged()));
+
+    connect(m_ui->finiteQueueRadioButton, SIGNAL(toggled(bool)),
+            this, SLOT(stationParamsChanged()));
+
+    connect(m_ui->queueLengthSpinBox, SIGNAL(valueChanged(int)),
+            this, SLOT(stationParamsChanged()));
+
+    connect(m_ui->processorCountSpinBox, SIGNAL(valueChanged(int)),
+            this, SLOT(stationParamsChanged()));
+
+    connect(m_ui->processingDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
+            this, SLOT(stationParamsChanged()));
+}
+
+void MainWindow::disconnectStationParamsWidgets()
+{
+    disconnect(m_ui->queueTypeComboBox, SIGNAL(currentIndexChanged(int)),
+               this, SLOT(stationParamsChanged()));
+
+    disconnect(m_ui->infiniteQueueRadioButton, SIGNAL(toggled(bool)),
+               this, SLOT(stationParamsChanged()));
+
+    disconnect(m_ui->finiteQueueRadioButton, SIGNAL(toggled(bool)),
+               this, SLOT(stationParamsChanged()));
+
+    disconnect(m_ui->queueLengthSpinBox, SIGNAL(valueChanged(int)),
+               this, SLOT(stationParamsChanged()));
+
+    disconnect(m_ui->processorCountSpinBox, SIGNAL(valueChanged(int)),
+               this, SLOT(stationParamsChanged()));
+
+    disconnect(m_ui->processingDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
+               this, SLOT(stationParamsChanged()));
 }
 
 void MainWindow::setSampleSimulationInstance()
@@ -127,6 +173,9 @@ void MainWindow::setSimulationInstance(const SimulationInstance& simulationInsta
 {
     m_simulation->setInstance(simulationInstance);
     m_simulationScene->setSimulationInstance(simulationInstance);
+
+    m_ui->arrivalDistributionParamsWidget->setDistributionParams(simulationInstance.arrivalTimeDistribution);
+    updateStationParams();
 }
 
 void MainWindow::closeEvent(QCloseEvent* e)
@@ -148,15 +197,82 @@ void MainWindow::arrivalDistributionParamsChanged()
     m_simulation->changeArrivalDistribution(m_ui->arrivalDistributionParamsWidget->getDistributionParams());
 }
 
-void MainWindow::processingDistributionParamsChanged()
+void MainWindow::updateStationParams()
 {
-    // TODO
+    int id = m_simulationScene->getSelectedStationId();
+    if (id == -1)
+    {
+        m_ui->stationOptionsDockWidgetContents->setEnabled(false);
+    }
+    else
+    {
+        m_ui->stationOptionsDockWidgetContents->setEnabled(true);
 
-    Distribution distributionParams = m_ui->processingDistributionParamsWidget->getDistributionParams();
+        disconnectStationParamsWidgets();
 
-    qDebug() << "type = " << static_cast<int>(distributionParams.type);
-    qDebug() << "param1 = " << distributionParams.param1;
-    qDebug() << "param2 = " << distributionParams.param2;
+        Station stationParams = m_simulation->getStation(id);
+
+        if (stationParams.queueType == QueueType::Fifo)
+        {
+            m_ui->queueTypeComboBox->setCurrentIndex(0);
+        }
+        else if (stationParams.queueType == QueueType::Random)
+        {
+            m_ui->queueTypeComboBox->setCurrentIndex(1);
+        }
+
+        if (stationParams.queueLength == 0)
+        {
+            m_ui->infiniteQueueRadioButton->setChecked(true);
+            m_ui->queueLengthSpinBox->setEnabled(false);
+        }
+        else
+        {
+            m_ui->finiteQueueRadioButton->setChecked(true);
+            m_ui->queueLengthSpinBox->setEnabled(true);
+            m_ui->queueLengthSpinBox->setValue(stationParams.queueLength);
+        }
+
+        m_ui->processorCountSpinBox->setValue(stationParams.processorCount);
+
+        m_ui->processingDistributionParamsWidget->setDistributionParams(stationParams.serviceTimeDistribution);
+
+        connectStationParamsWidgets();
+    }
+}
+
+void MainWindow::stationParamsChanged()
+{
+    int id = m_simulationScene->getSelectedStationId();
+
+    Station stationParams;
+
+    if (m_ui->queueTypeComboBox->currentIndex() == 0)
+    {
+        stationParams.queueType = QueueType::Fifo;
+    }
+    else if (m_ui->queueTypeComboBox->currentIndex() == 1)
+    {
+        stationParams.queueType = QueueType::Random;
+    }
+
+    if (m_ui->infiniteQueueRadioButton->isChecked())
+    {
+        stationParams.queueLength = 0;
+        m_ui->queueLengthSpinBox->setEnabled(false);
+    }
+    else
+    {
+        stationParams.queueLength = m_ui->queueLengthSpinBox->value();
+        m_ui->queueLengthSpinBox->setEnabled(true);
+    }
+
+    stationParams.processorCount = m_ui->processorCountSpinBox->value();
+
+    stationParams.serviceTimeDistribution = m_ui->processingDistributionParamsWidget->getDistributionParams();
+
+    m_simulation->changeStation(id, stationParams);
+    m_simulationScene->changeStation(id, stationParams);
 }
 
 void MainWindow::resetClicked()

@@ -14,8 +14,8 @@ struct Distribution
     double param1, param2;
 
     Distribution()
-     : type(DistributionType::Constant)
-     , param1(0.0)
+     : type(DistributionType::Exponential)
+     , param1(60.0)
      , param2(0.0)
     {}
 };

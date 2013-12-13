@@ -18,6 +18,9 @@ public:
 
     void changeArrivalDistribution(const Distribution& distribution);
 
+    Station getStation(int id) const;
+    void changeStation(int id, const Station& stationParams);
+
     void reset();
     Event simulateNextStep();
     double getCurrentTime();

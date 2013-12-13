@@ -31,6 +31,30 @@ void Simulation::changeArrivalDistribution(const Distribution& distribution)
     m_instance.arrivalTimeDistribution = distribution;
 }
 
+Station Simulation::getStation(int id) const
+{
+    for (const Station& station : m_instance.stations)
+    {
+        if (station.id == id)
+        {
+            return station;
+        }
+    }
+
+    return Station();
+}
+
+void Simulation::changeStation(int id, const Station& stationParams)
+{
+    for (Station& station : m_instance.stations)
+    {
+        if (station.id == id)
+        {
+            station = stationParams;
+            station.id = id;
+        }
+    }
+}
 
 void Simulation::reset()
 {

@@ -34,7 +34,9 @@ protected:
 
 private slots:
     void arrivalDistributionParamsChanged();
-    void processingDistributionParamsChanged();
+
+    void updateStationParams();
+    void stationParamsChanged();
 
     void resetClicked();
     void startStopClicked();
@@ -42,6 +44,9 @@ private slots:
     void updateSimulationInfo();
 
 private:
+    void connectStationParamsWidgets();
+    void disconnectStationParamsWidgets();
+
     void setSampleSimulationInstance();
 
 private:
