@@ -54,6 +54,8 @@ MainWindow::MainWindow()
     setSampleSimulationInstance();
 
     updateStationParams();
+    updateConnectionParams();
+
 
     connect(m_simulationThread, SIGNAL(newEvent(Event)),
             this, SLOT(newEvent(Event)));
@@ -79,25 +81,50 @@ MainWindow::MainWindow()
     connect(m_simulationScene, SIGNAL(selectionChanged()),
             this, SLOT(updateStationParams()));
 
+    connect(m_simulationScene, SIGNAL(selectionChanged()),
+            this, SLOT(updateConnectionParams()));
+
     connectStationParamsWidgets();
+    connectConnectionParamsWidgets();
 }
 
 MainWindow::~MainWindow()
 {
-    delete m_ui;
-    m_ui = nullptr;
-
-    delete m_simulation;
-    m_simulation = nullptr;
+    m_statisticsWindow = nullptr;
 
     delete m_simulationScene;
     m_simulationScene = nullptr;
+
+    delete m_simulationStateLabel;
+    m_simulationStateLabel = nullptr;
+
+    delete m_lastEventTimeLabel;
+    m_lastEventTimeLabel = nullptr;
+
+    delete m_simulationTimeLabel;
+    m_simulationTimeLabel = nullptr;
+
+    delete m_nextEventTimeLabel;
+    m_nextEventTimeLabel = nullptr;
+
+    delete m_simulation;
+    m_simulation = nullptr;
 
     delete m_simulationThread;
     m_simulationThread = nullptr;
 
     delete m_updateInfoTimer;
     m_updateInfoTimer = nullptr;
+
+    delete m_ui;
+    m_ui = nullptr;
+}
+
+void MainWindow::closeEvent(QCloseEvent* e)
+{
+    m_simulationThread->endThread();
+
+    QWidget::closeEvent(e);
 }
 
 void MainWindow::connectStationParamsWidgets()
@@ -142,6 +169,18 @@ void MainWindow::disconnectStationParamsWidgets()
                this, SLOT(stationParamsChanged()));
 }
 
+void MainWindow::connectConnectionParamsWidgets()
+{
+    connect(m_ui->connectionWeightSpinBox, SIGNAL(valueChanged(int)),
+            this, SLOT(connectionParamsChanged()));
+}
+
+void MainWindow::disconnectConnectionParamsWidgets()
+{
+    disconnect(m_ui->connectionWeightSpinBox, SIGNAL(valueChanged(int)),
+               this, SLOT(connectionParamsChanged()));
+}
+
 void MainWindow::setSampleSimulationInstance()
 {
     SimulationInstance instance;
@@ -176,13 +215,6 @@ void MainWindow::setSimulationInstance(const SimulationInstance& simulationInsta
 
     m_ui->arrivalDistributionParamsWidget->setDistributionParams(simulationInstance.arrivalTimeDistribution);
     updateStationParams();
-}
-
-void MainWindow::closeEvent(QCloseEvent* e)
-{
-    m_simulationThread->endThread();
-
-    QWidget::closeEvent(e);
 }
 
 void MainWindow::setStatisticsWindow(StatisticsWindow* statisticsWindow)
@@ -273,6 +305,36 @@ void MainWindow::stationParamsChanged()
 
     m_simulation->changeStation(id, stationParams);
     m_simulationScene->changeStation(id, stationParams);
+}
+
+void MainWindow::updateConnectionParams()
+{
+    auto selectedConnection = m_simulationScene->getSelectedConnection();
+
+    if (selectedConnection.first == -1)
+    {
+        m_ui->connectionOptionsDockWidgetContents->setEnabled(false);
+    }
+    else
+    {
+        m_ui->connectionOptionsDockWidgetContents->setEnabled(true);
+
+        disconnectConnectionParamsWidgets();
+
+        int connectionWeight = m_simulation->getConnectionWeight(selectedConnection.first, selectedConnection.second);
+        m_ui->connectionWeightSpinBox->setValue(connectionWeight);
+
+        connectConnectionParamsWidgets();
+    }
+}
+
+void MainWindow::connectionParamsChanged()
+{
+    auto selectedConnection = m_simulationScene->getSelectedConnection();
+
+    int weight = m_ui->connectionWeightSpinBox->value();
+    m_simulation->changeConnectionWeight(selectedConnection.first, selectedConnection.second, weight);
+    m_simulationScene->changeConnectionWeight(selectedConnection.first, selectedConnection.second, weight);
 }
 
 void MainWindow::resetClicked()

@@ -69,7 +69,7 @@ void SimulationScene::addConnection(const Connection& connectionInfo)
     ConnectionItem* connectionItem = new ConnectionItem(source, destination);
     addItem(connectionItem);
 
-    m_connectionItems[qMakePair<int,int>(connectionInfo.from, connectionInfo.to)] = connectionItem;
+    m_connectionItems[qMakePair<int, int>(connectionInfo.from, connectionInfo.to)] = connectionItem;
 }
 
 int SimulationScene::getSelectedStationId() const
@@ -93,6 +93,27 @@ int SimulationScene::getSelectedStationId() const
     return -1;
 }
 
+QPair<int, int> SimulationScene::getSelectedConnection() const
+{
+    QList<QGraphicsItem*> selectedItems = QGraphicsScene::selectedItems();
+    if (selectedItems.size() != 1)
+    {
+        return qMakePair(-1, -1);
+    }
+
+    QGraphicsItem* selectedItem = selectedItems.at(0);
+
+    for (auto it = m_connectionItems.begin(); it != m_connectionItems.end(); ++it)
+    {
+        if (it.value() == selectedItem)
+        {
+            return it.key();
+        }
+    }
+
+    return qMakePair<int, int>(-1, -1);
+}
+
 void SimulationScene::changeStation(int id, const Station& stationParams)
 {
     if (m_stationItems.contains(id))
@@ -102,3 +123,11 @@ void SimulationScene::changeStation(int id, const Station& stationParams)
     }
 }
 
+void SimulationScene::changeConnectionWeight(int from, int to, int weight)
+{
+    if (m_connectionItems.contains(qMakePair<int, int>(from, to)))
+    {
+        ConnectionItem* connectionItem = m_connectionItems[qMakePair<int, int>(from, to)];
+        connectionItem->updateWeight(weight);
+    }
+}

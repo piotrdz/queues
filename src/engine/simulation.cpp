@@ -56,6 +56,30 @@ void Simulation::changeStation(int id, const Station& stationParams)
     }
 }
 
+int Simulation::getConnectionWeight(int from, int to) const
+{
+    for (const Connection& connection : m_instance.connections)
+    {
+        if (connection.from == from && connection.to == to)
+        {
+            return connection.weight;
+        }
+    }
+
+    return 0;
+}
+
+void Simulation::changeConnectionWeight(int from, int to, int weight)
+{
+    for (Connection& connection : m_instance.connections)
+    {
+        if (connection.from == from && connection.to == to)
+        {
+            connection.weight = weight;
+        }
+    }
+}
+
 void Simulation::reset()
 {
     m_currentTime = 0.0;

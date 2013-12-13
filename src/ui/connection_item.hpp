@@ -25,6 +25,9 @@ public:
 
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+protected:
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+
 private:
     QPointF computeSourcePoint() const;
     QPointF computeDestinationPoint() const;

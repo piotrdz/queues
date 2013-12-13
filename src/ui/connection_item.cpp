@@ -2,7 +2,7 @@
 
 #include "ui/station_item.hpp"
 
-#include <QDebug>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 #include <cmath>
@@ -12,6 +12,8 @@ namespace
     const qreal PEN_WIDTH = 1.0;
     const qreal ARROW_SIZE = 15.0;
     const qreal LABEL_OFFSET = 8.0;
+    const qreal SELECTION_MARKER_SIZE = 5.0;
+    const qreal SELECTION_ZONE_WIDTH = 10.0;
 }
 
 
@@ -20,6 +22,9 @@ ConnectionItem::ConnectionItem(StationItem* source, StationItem* destination)
  , m_destination(destination)
  , m_weight(1)
 {
+    setFlag(QGraphicsItem::ItemIsSelectable);
+    setAcceptedMouseButtons(Qt::LeftButton);
+
     m_weightFont = QFont("Sans Serif", 10);
 
     if (m_source != nullptr)
@@ -91,6 +96,31 @@ void ConnectionItem::setDestination(StationItem* destination)
     if (m_destination != nullptr)
     {
         m_destination->removeConnection(this);
+    }
+}
+
+void ConnectionItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    QPointF sourcePoint = computeSourcePoint();
+    QPointF destinationPoint = computeDestinationPoint();
+
+    QLineF line(sourcePoint, destinationPoint);
+
+    QLineF nor = line.normalVector();
+    QPointF deltaNor = nor.p2() - nor.p1();
+    deltaNor /= nor.length();
+    deltaNor *= SELECTION_ZONE_WIDTH;
+
+    QPolygonF polygon;
+    polygon << (line.p1() + deltaNor) << (line.p1() - deltaNor) << (line.p2() - deltaNor) << (line.p2() + deltaNor);
+
+    if (polygon.containsPoint(event->pos(), Qt::OddEvenFill))
+    {
+        QGraphicsItem::mousePressEvent(event);
+    }
+    else
+    {
+        event->ignore();
     }
 }
 
@@ -226,6 +256,17 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
     if (qFuzzyCompare(line.length(), 0.0))
     {
         return;
+    }
+
+    if (isSelected())
+    {
+        QSizeF markerSize(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
+
+        painter->setPen(QPen(Qt::black));
+        painter->setBrush(QBrush(Qt::black));
+
+        painter->drawRect(QRectF(line.p1(), markerSize));
+        painter->drawRect(QRectF(line.p2(), markerSize));
     }
 
     painter->setPen(QPen(Qt::black, PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));

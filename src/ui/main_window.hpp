@@ -38,6 +38,9 @@ private slots:
     void updateStationParams();
     void stationParamsChanged();
 
+    void updateConnectionParams();
+    void connectionParamsChanged();
+
     void resetClicked();
     void startStopClicked();
     void newEvent(Event event);
@@ -46,6 +49,9 @@ private slots:
 private:
     void connectStationParamsWidgets();
     void disconnectStationParamsWidgets();
+
+    void connectConnectionParamsWidgets();
+    void disconnectConnectionParamsWidgets();
 
     void setSampleSimulationInstance();
 

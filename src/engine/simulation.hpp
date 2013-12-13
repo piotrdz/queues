@@ -21,6 +21,9 @@ public:
     Station getStation(int id) const;
     void changeStation(int id, const Station& stationParams);
 
+    int getConnectionWeight(int from, int to) const;
+    void changeConnectionWeight(int from, int to, int weight);
+
     void reset();
     Event simulateNextStep();
     double getCurrentTime();

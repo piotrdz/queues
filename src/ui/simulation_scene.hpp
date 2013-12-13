@@ -23,10 +23,12 @@ public:
     void addConnection(const Connection& connection);
 
     int getSelectedStationId() const;
+    QPair<int, int> getSelectedConnection() const;
 
     void changeStation(int id, const Station& stationParams);
+    void changeConnectionWeight(int from, int to, int weight);
 
 private:
     QMap<int, StationItem*> m_stationItems;
-    QMap<QPair<int,int>, ConnectionItem*> m_connectionItems;
+    QMap<QPair<int, int>, ConnectionItem*> m_connectionItems;
 };

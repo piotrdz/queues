@@ -2,7 +2,6 @@
 
 #include "ui/connection_item.hpp"
 
-#include <QDebug>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 
