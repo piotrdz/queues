@@ -51,27 +51,7 @@ MainWindow::MainWindow()
     m_nextEventTimeLabel = new QLabel(this);
     m_ui->statusBar->addWidget(m_nextEventTimeLabel, 1);
 
-    Station station1Info;
-    station1Info.id = 1;
-    station1Info.processorCount = 1;
-    station1Info.queueLength = 2;
-
-    StationItem* station1 = new StationItem();
-    m_simulationScene->addItem(station1);
-    station1->updateInfo(station1Info);
-    station1->setPos(-50, -50);
-
-    Station station2Info;
-    station2Info.id = 2;
-    station2Info.processorCount = 2;
-    station2Info.queueLength = 3;
-
-    StationItem* station2 = new StationItem();
-    m_simulationScene->addItem(station2);
-    station2->updateInfo(station2Info);
-    station2->setPos(50, 50);
-
-    m_simulationScene->addItem(new ConnectionItem(station1, station2));
+    setSampleSimulationInstance();
 
     connect(m_simulationThread, SIGNAL(newEvent(Event)),
             this, SLOT(newEvent(Event)));
@@ -108,6 +88,39 @@ MainWindow::~MainWindow()
 
     delete m_updateInfoTimer;
     m_updateInfoTimer = nullptr;
+}
+
+void MainWindow::setSampleSimulationInstance()
+{
+    SimulationInstance instance;
+
+    Station station1Info;
+    station1Info.id = 1;
+    station1Info.processorCount = 1;
+    station1Info.queueLength = 2;
+    station1Info.position = QPointF(-80, -80);
+    instance.stations.append(station1Info);
+
+    Station station2Info;
+    station2Info.id = 2;
+    station2Info.processorCount = 2;
+    station2Info.queueLength = 3;
+    station2Info.position = QPointF(80, 80);
+    instance.stations.append(station2Info);
+
+    Connection connectionInfo;
+    connectionInfo.from = 1;
+    connectionInfo.to = 2;
+    connectionInfo.weight = 1;
+    instance.connections.append(connectionInfo);
+
+    setSimulationInstance(instance);
+}
+
+void MainWindow::setSimulationInstance(const SimulationInstance& simulationInstance)
+{
+    m_simulation->setInstance(simulationInstance);
+    m_simulationScene->setSimulationInstance(simulationInstance);
 }
 
 void MainWindow::closeEvent(QCloseEvent* e)

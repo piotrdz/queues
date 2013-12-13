@@ -12,6 +12,7 @@ namespace Ui
 class Simulation;
 class SimulationScene;
 class SimulationThread;
+class SimulationInstance;
 class StatisticsWindow;
 
 class QLabel;
@@ -25,6 +26,7 @@ public:
     MainWindow();
     virtual ~MainWindow();
 
+    void setSimulationInstance(const SimulationInstance& simulationInstance);
     void setStatisticsWindow(StatisticsWindow* statisticsWindow);
 
 protected:
@@ -35,6 +37,9 @@ private slots:
     void startStopClicked();
     void newEvent(Event event);
     void updateSimulationInfo();
+
+private:
+    void setSampleSimulationInstance();
 
 private:
     Ui::MainWindow* m_ui;

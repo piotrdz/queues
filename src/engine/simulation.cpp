@@ -7,17 +7,17 @@ Simulation::Simulation()
 
 void Simulation::setInstance(const SimulationInstance& instance)
 {
-    // TODO
+    m_instance = instance;
 }
 
 void Simulation::addStation(const Station& station)
 {
-    // TODO
+    m_instance.stations.append(station);
 }
 
 void Simulation::addConnection(const Connection& connection)
 {
-    // TODO
+    m_instance.connections.append(connection);
 }
 
 bool Simulation::check()
