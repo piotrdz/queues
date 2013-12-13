@@ -5,6 +5,11 @@ Simulation::Simulation()
  : m_currentTime(0.0)
 {}
 
+void Simulation::setInstance(const SimulationInstance& instance)
+{
+    // TODO
+}
+
 void Simulation::addStation(const Station& station)
 {
     // TODO

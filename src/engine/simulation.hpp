@@ -1,8 +1,7 @@
 #pragma once
 
 #include "engine/event.hpp"
-#include "engine/connection.hpp"
-#include "engine/station.hpp"
+#include "engine/simulation_instance.hpp"
 
 #include <QList>
 
@@ -10,6 +9,8 @@ class Simulation
 {
 public:
     Simulation();
+
+    void setInstance(const SimulationInstance& instance);
 
     void addStation(const Station& station);
     void addConnection(const Connection& connection);
@@ -22,6 +23,5 @@ public:
 
 private:
     double m_currentTime;
-    QList<Station> m_stations;
-    QList<Connection> m_connections;
+    SimulationInstance m_instance;
 };
