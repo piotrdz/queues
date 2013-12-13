@@ -11,13 +11,17 @@ namespace
 {
     const qreal PEN_WIDTH = 1.0;
     const qreal ARROW_SIZE = 15.0;
+    const qreal LABEL_OFFSET = 8.0;
 }
 
 
 ConnectionItem::ConnectionItem(StationItem* source, StationItem* destination)
  : m_source(source)
  , m_destination(destination)
+ , m_weight(1)
 {
+    m_weightFont = QFont("Sans Serif", 10);
+
     if (m_source != nullptr)
     {
         m_source->addConnection(this);
@@ -90,6 +94,13 @@ void ConnectionItem::setDestination(StationItem* destination)
     }
 }
 
+void ConnectionItem::updateWeight(int weight)
+{
+    prepareGeometryChange();
+
+    m_weight = weight;
+}
+
 void ConnectionItem::adjust()
 {
     if (m_source == nullptr || m_destination == nullptr)
@@ -114,10 +125,13 @@ QRectF ConnectionItem::boundingRect() const
 
     qreal extra = (PEN_WIDTH + ARROW_SIZE) / 2.0;
 
+    QRectF weightLabelRect = computeWeightLabelRect();
+
     return QRectF(m_sourcePoint, QSizeF(m_destinationPoint.x() - m_sourcePoint.x(),
                                         m_destinationPoint.y() - m_sourcePoint.y()))
         .normalized()
-        .adjusted(-extra, -extra, extra, extra);
+        .adjusted(-extra, -extra, extra, extra)
+        .united(weightLabelRect);
 }
 
 QPointF ConnectionItem::computeSourcePoint() const
@@ -160,6 +174,44 @@ QPointF ConnectionItem::computeDestinationPoint() const
     return connectionLine.p2();
 }
 
+QRectF ConnectionItem::computeWeightLabelRect() const
+{
+    QLineF connectionLine(m_sourcePoint, m_destinationPoint);
+
+    QFontMetricsF metrics(m_weightFont);
+
+    QRectF textRect = metrics.boundingRect(QString().setNum(m_weight));
+
+    qreal dx = std::fabs(connectionLine.dx());
+    qreal dy = std::fabs(connectionLine.dy());
+
+    qreal tw2 = textRect.width() / 2.0;
+    qreal th2 = textRect.height() / 2.0;
+
+    if (dx > dy && dx > tw2)
+    {
+        qreal deltaT = tw2 / dx;
+        QPointF p1 = connectionLine.pointAt(0.5 - deltaT);
+        QPointF p2 = connectionLine.pointAt(0.5 + deltaT);
+
+        textRect.moveBottomRight(QPointF(std::min(p1.x(), p2.x()), std::min(p1.y(), p2.y()) - LABEL_OFFSET));
+    }
+    else if (dx <= dy && dy > th2)
+    {
+        qreal deltaT = th2 / dy;
+        QPointF p1 = connectionLine.pointAt(0.5 - deltaT);
+        QPointF p2 = connectionLine.pointAt(0.5 + deltaT);
+
+        textRect.moveBottomRight(QPointF(std::min(p1.x(), p2.x()) + LABEL_OFFSET, std::min(p1.y(), p2.y())));
+    }
+    else
+    {
+        textRect.moveBottomRight(connectionLine.pointAt(0.5));
+    }
+
+    return textRect;
+}
+
 void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     if (m_source == nullptr || m_destination == nullptr)
@@ -188,4 +240,9 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 
     painter->setBrush(Qt::black);
     painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);
+
+    QRectF weightLabelRect = computeWeightLabelRect();
+
+    painter->setFont(m_weightFont);
+    painter->drawText(weightLabelRect, Qt::AlignCenter, QString().setNum(m_weight));
 }

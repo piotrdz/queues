@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFont>
 #include <QGraphicsItem>
 
 class StationItem;
@@ -16,6 +17,8 @@ public:
     void setSource(StationItem* source);
     void setDestination(StationItem* destination);
 
+    void updateWeight(int weight);
+
     void adjust();
 
     virtual QRectF boundingRect() const;
@@ -25,9 +28,12 @@ public:
 private:
     QPointF computeSourcePoint() const;
     QPointF computeDestinationPoint() const;
+    QRectF computeWeightLabelRect() const;
 
     StationItem* m_source;
     StationItem* m_destination;
     QPointF m_sourcePoint;
     QPointF m_destinationPoint;
+    int m_weight;
+    QFont m_weightFont;
 };
