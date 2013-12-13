@@ -70,6 +70,12 @@ MainWindow::MainWindow()
 
     connect(m_updateInfoTimer, SIGNAL(timeout()),
             this, SLOT(updateSimulationInfo()));
+
+    connect(m_ui->arrivalDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
+            this, SLOT(arrivalDistributionParamsChanged()));
+
+    connect(m_ui->processingDistributionParamsWidget, SIGNAL(distributionParamsChanged()),
+            this, SLOT(processingDistributionParamsChanged()));
 }
 
 MainWindow::~MainWindow()
@@ -135,6 +141,22 @@ void MainWindow::setStatisticsWindow(StatisticsWindow* statisticsWindow)
     m_statisticsWindow = statisticsWindow;
     connect(m_simulationThread, SIGNAL(newEvent(Event)),
             m_statisticsWindow, SLOT(newEvent(Event)));
+}
+
+void MainWindow::arrivalDistributionParamsChanged()
+{
+    m_simulation->changeArrivalDistribution(m_ui->arrivalDistributionParamsWidget->getDistributionParams());
+}
+
+void MainWindow::processingDistributionParamsChanged()
+{
+    // TODO
+
+    Distribution distributionParams = m_ui->processingDistributionParamsWidget->getDistributionParams();
+
+    qDebug() << "type = " << static_cast<int>(distributionParams.type);
+    qDebug() << "param1 = " << distributionParams.param1;
+    qDebug() << "param2 = " << distributionParams.param2;
 }
 
 void MainWindow::resetClicked()

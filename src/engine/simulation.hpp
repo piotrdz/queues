@@ -16,6 +16,8 @@ public:
     void addConnection(const Connection& connection);
     bool check();
 
+    void changeArrivalDistribution(const Distribution& distribution);
+
     void reset();
     Event simulateNextStep();
     double getCurrentTime();

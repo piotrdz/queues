@@ -26,6 +26,12 @@ bool Simulation::check()
     return true;
 }
 
+void Simulation::changeArrivalDistribution(const Distribution& distribution)
+{
+    m_instance.arrivalTimeDistribution = distribution;
+}
+
+
 void Simulation::reset()
 {
     m_currentTime = 0.0;

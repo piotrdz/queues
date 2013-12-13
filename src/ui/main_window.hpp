@@ -33,6 +33,9 @@ protected:
     void closeEvent(QCloseEvent* e);
 
 private slots:
+    void arrivalDistributionParamsChanged();
+    void processingDistributionParamsChanged();
+
     void resetClicked();
     void startStopClicked();
     void newEvent(Event event);
