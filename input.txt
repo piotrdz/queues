@@ -1,7 +1,7 @@
-60 3
-U60,1,FIFO,4
-W30,1
-N60-20,2,FIFO,3
+E60,3
+U10_60,1,FIFO,4,12,12
+E30,1,RAND,-1,40,10
+N60_20,2,RAND,3,10,40
 WE,1,2
 WE,2,3
 1,3,4
@@ -15,8 +15,8 @@ WE,2,3
 
 
 //opis
-pierwsza linia: częstotliwość napływających zdarzeń na wejściu, liczba węzłów (systemów)
+pierwsza linia: rozkład i częstotliwość napływających zdarzeń na wejściu, liczba węzłów (systemów)
 kolejne linie: opisy poszczególnych systemów (rozkład zm. los. obsługi, liczba maszyn,
-typ kolejki, pojemność systemu). Jeśli nie ma typu kolejki i pojemności - system bezstratny
+typ kolejki, pojemność systemu (-1 oznacza nieskończoną pojemność), wspołrzędnaX, współrzędnaY).
 po opisach systemów opisy łuków, 1 linia - 1 łuk (nr_pocz_syst, nr_konc_syst, wartość) - 
 dla wejścia i wyjścia przyjmujemy zamiast nr: WE, WY.
