@@ -11,10 +11,10 @@ public:
     Simulation();
 
     void setInstance(const SimulationInstance& instance);
+    const SimulationInstance& getInstance() const;
 
     void addStation(const Station& station);
     void addConnection(const Connection& connection);
-    bool check();
 
     void changeArrivalDistribution(const Distribution& distribution);
 
@@ -35,6 +35,10 @@ public:
     Event simulateNextStep();
     double getCurrentTime();
     double getTimeToNextStep();
+
+    static SimulationInstance readFromFile(std::string path);
+    static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
+    static bool check(const SimulationInstance& instance);
 
 private:
     double m_currentTime;

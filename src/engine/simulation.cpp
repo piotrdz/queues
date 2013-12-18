@@ -20,6 +20,11 @@ void Simulation::setInstance(const SimulationInstance& instance)
     }
 }
 
+const SimulationInstance& Simulation::getInstance() const
+{
+    return m_instance;
+}
+
 void Simulation::addStation(const Station& station)
 {
     m_instance.stations.append(station);
@@ -29,12 +34,6 @@ void Simulation::addStation(const Station& station)
 void Simulation::addConnection(const Connection& connection)
 {
     m_instance.connections.append(connection);
-}
-
-bool Simulation::check()
-{
-    // TODO
-    return true;
 }
 
 void Simulation::changeArrivalDistribution(const Distribution& distribution)
@@ -176,6 +175,23 @@ double Simulation::getTimeToNextStep()
     return 0.5;
 }
 
+SimulationInstance Simulation::readFromFile(std::string path)
+{
+    return SimulationInstance();
+}
+
+void Simulation::saveToFile(std::string path, const SimulationInstance& simulationInstance)
+{
+    // TODO
+}
+
+bool Simulation::check(const SimulationInstance& instance)
+{
+    // TODO
+    return true;
+}
+
+/*
 void Simulation::readFromFile(std::string path)
 {
    reset();
@@ -333,4 +349,4 @@ void loadDistribution(std::string line, Station& station)
 	       station.serviceTimeDistribution.param1 = atof(line.substr(1, underlinePos-1));
 	       station.serviceTimeDistribution.param2 = atof(line.substr(underlinePos+1, comaPos-underlinePos));
 	     }
-}
+}*/

@@ -47,6 +47,9 @@ private slots:
     void removeStation(int id);
     void removeConnection(int from, int to);
 
+    void loadFromFileButtonClicked();
+    void saveToFileButtonClicked();
+
     void resetClicked();
     void startStopClicked();
     void newEvent(Event event);

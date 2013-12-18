@@ -11,6 +11,8 @@
 #include "ui_main_window.h"
 
 #include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QTimer>
 
 
@@ -95,6 +97,12 @@ MainWindow::MainWindow()
 
     connect(m_simulationScene, SIGNAL(connectionRemoveRequest(int, int)),
             this, SLOT(removeConnection(int, int)));
+
+    connect(m_ui->loadFromFileButton, SIGNAL(clicked()),
+            this, SLOT(loadFromFileButtonClicked()));
+
+    connect(m_ui->saveToFileButton, SIGNAL(clicked()),
+            this, SLOT(saveToFileButtonClicked()));
 
     connectStationParamsWidgets();
     connectConnectionParamsWidgets();
@@ -222,6 +230,13 @@ void MainWindow::setSampleSimulationInstance()
 
 void MainWindow::setSimulationInstance(const SimulationInstance& simulationInstance)
 {
+    if (!Simulation::check(simulationInstance))
+    {
+        QMessageBox::critical(this, QString::fromUtf8("Kolejki - błąd"),
+                              QString::fromUtf8("Błędna instancja!"));
+        return;
+    }
+
     m_simulation->setInstance(simulationInstance);
     m_simulationScene->setSimulationInstance(simulationInstance);
 
@@ -386,6 +401,38 @@ void MainWindow::removeConnection(int from, int to)
 {
     m_simulation->removeConnection(from, to);
     m_simulationScene->removeConnection(from, to);
+}
+
+void MainWindow::loadFromFileButtonClicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        this, QString::fromUtf8("Otwórz instancję"), "", tr("Pliki tekstowe (*.txt)"));
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    std::string strFileName = fileName.toStdString();
+
+    SimulationInstance instance = Simulation::readFromFile(strFileName);
+    setSimulationInstance(instance);
+}
+
+void MainWindow::saveToFileButtonClicked()
+{
+    QString fileName = QFileDialog::getSaveFileName(
+        this, QString::fromUtf8("Zapisz instancję"), "", tr("Pliki tekstowe (*.txt)"));
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    std::string strFileName = fileName.toStdString();
+
+    SimulationInstance instance = m_simulation->getInstance();
+    Simulation::saveToFile(strFileName, instance);
 }
 
 void MainWindow::resetClicked()
