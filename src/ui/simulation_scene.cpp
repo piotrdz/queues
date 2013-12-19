@@ -294,3 +294,17 @@ StationItem* SimulationScene::getStationItemAtPos(const QPointF& pos)
     return nullptr;
 }
 
+void SimulationScene::newEvent(Event event)
+{
+    if (event.type == EventType::TaskAddedToQueue ||
+        event.type == EventType::TaskStartedProcessing ||
+        event.type == EventType::TaskEndedProcessing ||
+        event.type == EventType::MachineIsIdle)
+    {
+        StationItem* stationItem = getStationItemById(event.stationId);
+        Q_ASSERT(stationItem != nullptr);
+
+        stationItem->newEvent(event);
+        update();
+    }
+}

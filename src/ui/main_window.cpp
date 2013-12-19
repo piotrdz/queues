@@ -480,6 +480,8 @@ void MainWindow::updateSimulationInfo()
 
 void MainWindow::newEvent(Event event)
 {
+    m_simulationScene->newEvent(event);
+
     qDebug() << "New event!";
 }
 

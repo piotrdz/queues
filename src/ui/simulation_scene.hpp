@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/event.hpp"
+
 #include <QGraphicsScene>
 #include <QList>
 
@@ -36,6 +38,8 @@ public:
     void processCustomMousePress(const QPointF& scenePos);
     void processCustomMouseMove(const QPointF& scenePos);
     void processCustomMouseRelease(const QPointF& scenePos);
+
+    void newEvent(Event event);
 
 signals:
     void stationAddRequest(const QPointF& pos);

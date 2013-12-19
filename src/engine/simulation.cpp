@@ -157,11 +157,51 @@ void Simulation::reset()
     // TODO
 }
 
+// TODO: kod testowy, wywalić później
+Event Simulation::demoEvent()
+{
+    static const QList<Event> events =
+    {
+        Event(EventType::TaskInput,             0.5, 0, 1),
+        Event(EventType::TaskAddedToQueue,      1.0, 1, 1),
+        Event(EventType::TaskStartedProcessing, 1.5, 1, 1),
+        Event(EventType::TaskInput,             2.0, 0, 2),
+        Event(EventType::TaskAddedToQueue,      2.5, 1, 2),
+        Event(EventType::TaskEndedProcessing,   3.0, 1, 1),
+        Event(EventType::MachineIsIdle,         3.5, 1, 1),
+        Event(EventType::TaskAddedToQueue,      4.0, 2, 1),
+        Event(EventType::TaskStartedProcessing, 4.5, 2, 1),
+        Event(EventType::TaskStartedProcessing, 5.0, 1, 2),
+        Event(EventType::TaskEndedProcessing,   5.5, 2, 1),
+        Event(EventType::MachineIsIdle,         6.0, 2, 1),
+        Event(EventType::TaskOutput,            6.5, 0, 1),
+        Event(EventType::TaskEndedProcessing,   7.0, 1, 2),
+        Event(EventType::MachineIsIdle,         7.5, 1, 2),
+        Event(EventType::TaskAddedToQueue,      8.0, 2, 2),
+        Event(EventType::TaskStartedProcessing, 8.5, 2, 2),
+        Event(EventType::TaskEndedProcessing,   9.0, 2, 2),
+        Event(EventType::MachineIsIdle,         9.5, 2, 2),
+        Event(EventType::TaskOutput,           10.0, 0, 2)
+    };
+
+    double t = m_currentTime + 0.001;
+    int index = static_cast<int>(std::floor(t / 0.5));
+    if (index >= events.size())
+    {
+        return Event();
+    }
+    m_currentTime += 0.5;
+    return events[index];
+}
+
 Event Simulation::simulateNextStep()
 {
-    m_currentTime += getTimeToNextStep();
+    // TODO: kod testowy, wywalić później
+    return demoEvent();
+
+    //m_currentTime += getTimeToNextStep();
     // TODO
-    return Event();
+    //return Event();
 }
 
 double Simulation::getCurrentTime()

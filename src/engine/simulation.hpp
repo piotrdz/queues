@@ -41,6 +41,10 @@ public:
     static bool check(const SimulationInstance& instance);
 
 private:
+    // TODO: kod testowy, wywalić później
+    Event demoEvent();
+
+private:
     double m_currentTime;
     SimulationInstance m_instance;
     int m_nextStationId;

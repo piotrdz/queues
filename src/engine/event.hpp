@@ -17,11 +17,22 @@ struct Event
     EventType type;
     double time;
     int stationId;
+    int taskId;
 
     Event()
      : type(EventType::TaskInput)
      , time(0.0)
      , stationId(0)
+     , taskId(0)
+    {}
+
+    Event(EventType type,
+          double time,
+          int stationId,
+          int taskId)
+     : type(type)
+     , time(time)
+     , stationId(stationId)
+     , taskId(taskId)
     {}
 };
-

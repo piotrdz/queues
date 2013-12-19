@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/event.hpp"
 #include "engine/station.hpp"
 
 #include <QFont>
@@ -20,6 +21,9 @@ public:
     void updateParams(const StationParams& stationParams);
     int getId() const;
 
+    void reset();
+    void newEvent(Event event);
+
     QRectF getBaseRect() const;
 
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
@@ -38,4 +42,7 @@ private:
     QFont m_labelFont;
     QFont m_taskFont;
     QSet<ConnectionItem*> m_connections;
+
+    QList<int> m_tasksInQueue;
+    QList<int> m_tasksInProcessors;
 };

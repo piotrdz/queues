@@ -2,6 +2,7 @@
 
 #include "ui/connection_item.hpp"
 
+#include <QDebug>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 
@@ -19,6 +20,8 @@ namespace
 StationItem::StationItem(const Station& station)
  : m_stationInfo(station)
 {
+    updateParams(station);
+
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
@@ -51,12 +54,133 @@ StationItem::~StationItem()
 void StationItem::updateParams(const StationParams& stationParams)
 {
     prepareGeometryChange();
+
     m_stationInfo.setParams(stationParams);
+
+    m_tasksInQueue.clear();
+    for (int i = 0; i < stationParams.queueLength; ++i)
+    {
+        m_tasksInQueue.append(0);
+    }
+
+    m_tasksInProcessors.clear();
+    for (int i = 0; i < stationParams.processorCount; ++i)
+    {
+        m_tasksInProcessors.append(0);
+    }
 }
 
 int StationItem::getId() const
 {
     return m_stationInfo.id;
+}
+
+void StationItem::newEvent(Event event)
+{
+    if (event.type == EventType::TaskAddedToQueue)
+    {
+        if (m_stationInfo.queueLength == 0)
+        {
+            m_tasksInQueue.append(event.taskId);
+        }
+        else
+        {
+            bool addedOk = false;
+            for (int& task : m_tasksInQueue)
+            {
+                if (task == 0)
+                {
+                    task = event.taskId;
+                    addedOk = true;
+                    break;
+                }
+            }
+            if (!addedOk)
+            {
+                qDebug() << "Task does not fit in queue: " << event.taskId;
+            }
+        }
+    }
+    else if (event.type == EventType::TaskStartedProcessing)
+    {
+        if (m_stationInfo.queueLength == 0)
+        {
+            bool removedOk = m_tasksInQueue.removeOne(event.taskId);
+            if (!removedOk)
+            {
+                qDebug() << "Task not in queue:" << event.taskId;
+            }
+        }
+        else
+        {
+            bool removedOk = false;
+            for (int& task : m_tasksInQueue)
+            {
+                if (task == event.taskId)
+                {
+                    task = 0;
+                    removedOk = true;
+                    break;
+                }
+            }
+            if (!removedOk)
+            {
+                qDebug() << "Task not in queue:" << event.taskId;
+            }
+        }
+
+        bool addedOk = false;
+        for (int& processorTask : m_tasksInProcessors)
+        {
+            if (processorTask == 0)
+            {
+                processorTask = event.taskId;
+                addedOk = true;
+                break;
+            }
+        }
+
+        if (!addedOk)
+        {
+            qDebug() << "Task could not be added to processor:" << event.taskId;
+        }
+    }
+    else if (event.type == EventType::TaskEndedProcessing)
+    {
+        bool changedOk = false;
+        for (int& processorTask : m_tasksInProcessors)
+        {
+            if (processorTask == event.taskId)
+            {
+                processorTask = -event.taskId;
+                changedOk = true;
+                break;
+            }
+        }
+
+        if (!changedOk)
+        {
+            qDebug() << "Task not found on processors: " << event.taskId;
+        }
+    }
+    else if (event.type == EventType::MachineIsIdle)
+    {
+        bool changedOk = false;
+        for (int& processorTask : m_tasksInProcessors)
+        {
+            if (processorTask == -event.taskId)
+            {
+                processorTask = 0;
+                changedOk = true;
+                break;
+            }
+        }
+
+        if (!changedOk)
+        {
+            qDebug() << "Task not found on processors: " << event.taskId;
+        }
+    }
 }
 
 void StationItem::addConnection(ConnectionItem* edge)
@@ -106,7 +230,9 @@ QSizeF StationItem::getBaseSize() const
 
     QSizeF taskSize = getTaskSize();
 
-    qreal width = QUEUE_SPACING + m_stationInfo.queueLength * taskSize.width() + QUEUE_SPACING +
+    int queueDrawLength = std::max(1, m_stationInfo.queueLength);
+
+    qreal width = QUEUE_SPACING + queueDrawLength * taskSize.width() + QUEUE_SPACING +
                   PROCESSOR_SPACING + taskSize.width() + PROCESSOR_SPACING;
 
     qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + taskSize.height() + QUEUE_SPACING;
@@ -127,7 +253,17 @@ QSizeF StationItem::getTaskSize() const
 {
     QFontMetricsF metrics(m_taskFont);
 
-    return metrics.size(0, "99") + QSizeF(2*TASK_RECT_SPACING, 2*TASK_RECT_SPACING);
+    QSizeF baseSize;
+    if (m_stationInfo.queueLength == 0)
+    {
+        baseSize = metrics.size(0, "#999");
+    }
+    else
+    {
+        baseSize = metrics.size(0, "99");
+    }
+
+    return baseSize + QSizeF(2*TASK_RECT_SPACING, 2*TASK_RECT_SPACING);
 }
 
 QString StationItem::getLabel() const
@@ -204,11 +340,27 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 
     painter->setPen(QPen(Qt::black));
 
-    for (int i = 0; i < m_stationInfo.queueLength; ++i)
+    int queueDrawLength = std::max(1, m_stationInfo.queueLength);
+
+    for (int i = 0; i < queueDrawLength; ++i)
     {
+        QString taskText;
+        if (m_stationInfo.queueLength == 0)
+        {
+            taskText = QString("#%1").arg(m_tasksInQueue.size());
+        }
+        else
+        {
+            int task = m_tasksInQueue.at(m_tasksInQueue.size() - i - 1);
+            if (task != 0)
+            {
+                taskText.setNum(task);
+            }
+        }
+
         QRectF queueTaskRect(queuePos, taskSize);
         painter->drawRect(queueTaskRect);
-        painter->drawText(queueTaskRect, Qt::AlignCenter, "X");
+        painter->drawText(queueTaskRect, Qt::AlignCenter, taskText);
 
         queuePos += QPointF(taskSize.width(), 0.0);
     }
@@ -221,9 +373,16 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 
     for (int i = 0; i < m_stationInfo.processorCount; ++i)
     {
+        QString taskText;
+        int task = m_tasksInProcessors.at(i);
+        if (task != 0)
+        {
+            taskText.setNum(m_tasksInProcessors.at(i));
+        }
+
         QRectF processorTaskRect(processorPos, taskSize);
         painter->drawRect(processorTaskRect);
-        painter->drawText(processorTaskRect, Qt::AlignCenter, "Y");
+        painter->drawText(processorTaskRect, Qt::AlignCenter, taskText);
 
         processorPos += QPointF(0.0, taskSize.height() + PROCESSOR_SPACING);
     }
