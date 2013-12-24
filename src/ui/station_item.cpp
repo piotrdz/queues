@@ -57,22 +57,27 @@ void StationItem::updateParams(const StationParams& stationParams)
 
     m_stationInfo.setParams(stationParams);
 
-    m_tasksInQueue.clear();
-    for (int i = 0; i < stationParams.queueLength; ++i)
-    {
-        m_tasksInQueue.append(0);
-    }
-
-    m_tasksInProcessors.clear();
-    for (int i = 0; i < stationParams.processorCount; ++i)
-    {
-        m_tasksInProcessors.append(0);
-    }
+    reset();
 }
 
 int StationItem::getId() const
 {
     return m_stationInfo.id;
+}
+
+void StationItem::reset()
+{
+    m_tasksInQueue.clear();
+    for (int i = 0; i < m_stationInfo.queueLength; ++i)
+    {
+        m_tasksInQueue.append(0);
+    }
+
+    m_tasksInProcessors.clear();
+    for (int i = 0; i < m_stationInfo.processorCount; ++i)
+    {
+        m_tasksInProcessors.append(0);
+    }
 }
 
 void StationItem::newEvent(Event event)
@@ -228,15 +233,16 @@ QSizeF StationItem::getBaseSize() const
 {
     QSizeF labelSize = getLabelSize();
 
-    QSizeF taskSize = getTaskSize();
+    QSizeF processorTaskSize = getProcessorTaskSize();
+    QSizeF queueTaskSize = getQueueTaskSize();
 
     int queueDrawLength = std::max(1, m_stationInfo.queueLength);
 
-    qreal width = QUEUE_SPACING + queueDrawLength * taskSize.width() + QUEUE_SPACING +
-                  PROCESSOR_SPACING + taskSize.width() + PROCESSOR_SPACING;
+    qreal width = QUEUE_SPACING + queueDrawLength * queueTaskSize.width() + QUEUE_SPACING +
+                  PROCESSOR_SPACING + processorTaskSize.width() + PROCESSOR_SPACING;
 
-    qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + taskSize.height() + QUEUE_SPACING;
-    qreal processorAreaHeight = PROCESSOR_SPACING + (PROCESSOR_SPACING + taskSize.height()) * m_stationInfo.processorCount;
+    qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + queueTaskSize.height() + QUEUE_SPACING;
+    qreal processorAreaHeight = PROCESSOR_SPACING + (PROCESSOR_SPACING + processorTaskSize.height()) * m_stationInfo.processorCount;
 
     qreal height = std::max(queueAreaHeight, processorAreaHeight);
 
@@ -249,7 +255,14 @@ QSizeF StationItem::getLabelSize() const
     return metrics.size(0, getLabel()) + QSizeF(2*LABEL_RECT_SPACING, 2*LABEL_RECT_SPACING);
 }
 
-QSizeF StationItem::getTaskSize() const
+QSizeF StationItem::getProcessorTaskSize() const
+{
+    QFontMetricsF metrics(m_taskFont);
+    QSizeF baseSize = metrics.size(0, "99");
+    return baseSize + QSizeF(2*TASK_RECT_SPACING, 2*TASK_RECT_SPACING);
+}
+
+QSizeF StationItem::getQueueTaskSize() const
 {
     QFontMetricsF metrics(m_taskFont);
 
@@ -277,7 +290,8 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 {
     QSizeF baseSize = getBaseSize();
     QSizeF labelSize = getLabelSize();
-    QSizeF taskSize = getTaskSize();
+    QSizeF processorTaskSize = getProcessorTaskSize();
+    QSizeF queueTaskSize = getQueueTaskSize();
 
     painter->translate(-baseSize.width() / 2.0 - SELECTION_MARKER_SIZE, -baseSize.height() / 2.0 - SELECTION_MARKER_SIZE);
 
@@ -321,8 +335,8 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 
     painter->setFont(m_taskFont);
 
-    qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + taskSize.height() + QUEUE_SPACING;
-    qreal processorAreaHeight = PROCESSOR_SPACING + (PROCESSOR_SPACING + taskSize.height()) * m_stationInfo.processorCount;
+    qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + queueTaskSize.height() + QUEUE_SPACING;
+    qreal processorAreaHeight = PROCESSOR_SPACING + (PROCESSOR_SPACING + processorTaskSize.height()) * m_stationInfo.processorCount;
 
     qreal queueHeight = 0.0;
 
@@ -332,7 +346,7 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     }
     else
     {
-        queueHeight = std::max(processorAreaHeight / 2.0 - taskSize.height() / 2.0,
+        queueHeight = std::max(processorAreaHeight / 2.0 - queueTaskSize.height() / 2.0,
                                labelSize.height() + QUEUE_SPACING);
     }
 
@@ -358,16 +372,16 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
             }
         }
 
-        QRectF queueTaskRect(queuePos, taskSize);
+        QRectF queueTaskRect(queuePos, queueTaskSize);
         painter->drawRect(queueTaskRect);
         painter->drawText(queueTaskRect, Qt::AlignCenter, taskText);
 
-        queuePos += QPointF(taskSize.width(), 0.0);
+        queuePos += QPointF(queueTaskSize.width(), 0.0);
     }
 
     // processors
 
-    qreal queueAreaWidth = QUEUE_SPACING + m_stationInfo.queueLength * taskSize.width() + QUEUE_SPACING;
+    qreal queueAreaWidth = QUEUE_SPACING + std::max(1, m_stationInfo.queueLength) * queueTaskSize.width() + QUEUE_SPACING;
 
     QPointF processorPos(queueAreaWidth + PROCESSOR_SPACING, PROCESSOR_SPACING);
 
@@ -380,10 +394,10 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
             taskText.setNum(m_tasksInProcessors.at(i));
         }
 
-        QRectF processorTaskRect(processorPos, taskSize);
+        QRectF processorTaskRect(processorPos, processorTaskSize);
         painter->drawRect(processorTaskRect);
         painter->drawText(processorTaskRect, Qt::AlignCenter, taskText);
 
-        processorPos += QPointF(0.0, taskSize.height() + PROCESSOR_SPACING);
+        processorPos += QPointF(0.0, processorTaskSize.height() + PROCESSOR_SPACING);
     }
 }

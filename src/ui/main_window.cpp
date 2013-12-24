@@ -440,6 +440,8 @@ void MainWindow::resetClicked()
     m_ui->singleStepButton->setEnabled(true);
     m_ui->startStopButton->setText("Start");
     m_simulationThread->resetSimulation();
+    m_simulationScene->reset();
+    //m_statisticsWindow->reset();
 }
 
 void MainWindow::startStopClicked()
@@ -481,7 +483,5 @@ void MainWindow::updateSimulationInfo()
 void MainWindow::newEvent(Event event)
 {
     m_simulationScene->newEvent(event);
-
-    qDebug() << "New event!";
 }
 

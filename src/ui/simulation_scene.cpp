@@ -308,3 +308,12 @@ void SimulationScene::newEvent(Event event)
         update();
     }
 }
+
+void SimulationScene::reset()
+{
+    for (StationItem* stationItem : m_stationItems)
+    {
+        stationItem->reset();
+    }
+}
+

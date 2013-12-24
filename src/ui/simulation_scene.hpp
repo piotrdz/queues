@@ -40,6 +40,7 @@ public:
     void processCustomMouseRelease(const QPointF& scenePos);
 
     void newEvent(Event event);
+    void reset();
 
 signals:
     void stationAddRequest(const QPointF& pos);

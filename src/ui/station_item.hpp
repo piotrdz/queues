@@ -35,7 +35,8 @@ public:
 private:
     QSizeF getBaseSize() const;
     QSizeF getLabelSize() const;
-    QSizeF getTaskSize() const;
+    QSizeF getProcessorTaskSize() const;
+    QSizeF getQueueTaskSize() const;
     QString getLabel() const;
 
     Station m_stationInfo;
