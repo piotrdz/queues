@@ -2,6 +2,7 @@
 
 #include "engine/event.hpp"
 
+#include <QList>
 #include <QTimer>
 #include <QWidget>
 
@@ -11,6 +12,7 @@ namespace Ui
 }
 
 class QwtPlotCurve;
+class StatisticsSeriesData;
 
 class StatisticsWindow : public QWidget
 {
@@ -19,16 +21,20 @@ public:
     StatisticsWindow();
     virtual ~StatisticsWindow();
 
-private slots:
+    void reset();
+
+public slots:
     void newEvent(Event event);
-    void testButtonClicked();
-    void animationStep();
+
+private slots:
+    void addNewStatistic();
 
 private:
     Ui::StatisticsWindow* m_ui;
-    QTimer m_animationTimer;
-    QwtPlotCurve* m_curve1;
-    QwtPlotCurve* m_curve2;
-    QVector<QPointF> m_curve1Samples;
-    QVector<QPointF> m_curve2Samples;
+    struct StatisticsData
+    {
+        QwtPlotCurve* curve;
+        StatisticsSeriesData* seriesData;
+    };
+    QList<StatisticsData> m_statisticsData;
 };

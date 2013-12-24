@@ -441,7 +441,7 @@ void MainWindow::resetClicked()
     m_ui->startStopButton->setText("Start");
     m_simulationThread->resetSimulation();
     m_simulationScene->reset();
-    //m_statisticsWindow->reset();
+    m_statisticsWindow->reset();
 }
 
 void MainWindow::startStopClicked()

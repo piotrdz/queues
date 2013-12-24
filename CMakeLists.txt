@@ -48,6 +48,9 @@ set(queues_SOURCES
 
     src/engine/simulation.cpp
 
+    src/stats/station_stats.cpp
+    src/stats/system_stats.cpp
+
     src/ui/connection_item.cpp
     src/ui/distribution_params_widget.cpp
     src/ui/main_window.cpp
@@ -55,6 +58,8 @@ set(queues_SOURCES
     src/ui/simulation_thread.cpp
     src/ui/simulation_view.cpp
     src/ui/station_item.cpp
+    src/ui/statistic_item_widget.cpp
+    src/ui/statistics_series_data.cpp
     src/ui/statistics_window.cpp
 )
 
@@ -65,6 +70,7 @@ qt5_add_resources(queues_RESOURCES
 qt5_wrap_ui(queues_FORMS
     forms/distribution_params_widget.ui
     forms/main_window.ui
+    forms/statistic_item_widget.ui
     forms/statistics_window.ui
 )
 
@@ -77,4 +83,3 @@ set(queues_ALL_SOURCES
 add_executable(queues ${queues_ALL_SOURCES})
 target_link_libraries(queues ${QWT_LIBRARY})
 qt5_use_modules(queues Widgets)
-
