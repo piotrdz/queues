@@ -46,6 +46,7 @@ bool StatisticsSeriesData::update(Event event)
 
 void StatisticsSeriesData::reset()
 {
+    m_minSample = m_maxSample = 0.0;
     m_stat->reset();
     m_samples.clear();
 }

@@ -11,7 +11,9 @@ namespace Ui
     class StatisticsWindow;
 }
 
+class QVBoxLayout;
 class QwtPlotCurve;
+class StatisticItemWidget;
 class StatisticsSeriesData;
 
 class StatisticsWindow : public QWidget
@@ -28,6 +30,8 @@ public slots:
 
 private slots:
     void addNewStatistic();
+    void statisticTypeChanged(int index);
+    void removeStatistic(int index);
 
 private:
     Ui::StatisticsWindow* m_ui;
@@ -35,6 +39,8 @@ private:
     {
         QwtPlotCurve* curve;
         StatisticsSeriesData* seriesData;
+        StatisticItemWidget* widget;
     };
     QList<StatisticsData> m_statisticsData;
+    QVBoxLayout* m_statisticsLayout;
 };
