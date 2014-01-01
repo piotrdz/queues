@@ -38,9 +38,9 @@ public:
 
     static SimulationInstance readFromFile(std::string path);
     static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
-    
     static void loadDistribution(std::string line, Station& station);
-    static const char TypeToString(DistributionType type);
+    static const char typeToString(DistributionType type);
+
     static bool check(const SimulationInstance& instance);
 
 private:
