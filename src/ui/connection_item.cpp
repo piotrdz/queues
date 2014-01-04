@@ -180,7 +180,7 @@ QPointF ConnectionItem::getDestinationPoint() const
 
 QPointF ConnectionItem::getDrawSourcePoint() const
 {
-    QPolygonF sourceRect = mapFromItem(m_source, m_source->getBaseRect());
+    QPolygonF sourceRect = mapFromItem(m_source, m_source->getOutlineBasePolygon());
 
     QLineF connectionLine(m_sourcePoint, getDestinationPoint());
 
@@ -205,7 +205,7 @@ QPointF ConnectionItem::getDrawDestinationPoint() const
         return m_destinationPoint;
     }
 
-    QPolygonF destinationRect = mapFromItem(m_destination, m_destination->getBaseRect());
+    QPolygonF destinationRect = mapFromItem(m_destination, m_destination->getOutlineBasePolygon());
 
     QLineF connectionLine(m_sourcePoint, getDestinationPoint());
 

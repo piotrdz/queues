@@ -77,7 +77,7 @@ int SimulationScene::getSelectedStationId() const
     QList<QGraphicsItem*> selectedItems = QGraphicsScene::selectedItems();
     if (selectedItems.size() != 1)
     {
-        return -1;
+        return INVALID_STATION_ID;
     }
 
     QGraphicsItem* selectedItem = selectedItems.at(0);
@@ -90,7 +90,7 @@ int SimulationScene::getSelectedStationId() const
         }
     }
 
-    return -1;
+    return INVALID_STATION_ID;
 }
 
 QPair<int, int> SimulationScene::getSelectedConnection() const
@@ -98,7 +98,7 @@ QPair<int, int> SimulationScene::getSelectedConnection() const
     QList<QGraphicsItem*> selectedItems = QGraphicsScene::selectedItems();
     if (selectedItems.size() != 1)
     {
-        return qMakePair(-1, -1);
+        return qMakePair(INVALID_STATION_ID, INVALID_STATION_ID);
     }
 
     QGraphicsItem* selectedItem = selectedItems.at(0);
@@ -113,7 +113,7 @@ QPair<int, int> SimulationScene::getSelectedConnection() const
         }
     }
 
-    return qMakePair<int, int>(-1, -1);
+    return qMakePair<int, int>(INVALID_STATION_ID, INVALID_STATION_ID);
 }
 
 void SimulationScene::changeStation(int id, const StationParams& stationParams)
@@ -226,14 +226,14 @@ void SimulationScene::keyPressEvent(QKeyEvent* event)
     if (event->key() == Qt::Key_Delete)
     {
         int stationId = getSelectedStationId();
-        if (stationId != -1)
+        if (stationId != INVALID_STATION_ID)
         {
             emit stationRemoveRequest(stationId);
         }
         else
         {
             QPair<int, int> connection = getSelectedConnection();
-            if (connection.first != -1)
+            if (connection.first != INVALID_STATION_ID)
             {
                 emit connectionRemoveRequest(connection.first, connection.second);
             }

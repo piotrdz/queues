@@ -38,12 +38,12 @@ public:
 
     static SimulationInstance readFromFile(std::string path);
     static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
-    static void loadDistribution(std::string line, Station& station);
-    static const char typeToString(DistributionType type);
-
     static bool check(const SimulationInstance& instance);
 
 private:
+    static void loadDistribution(std::string line, Station& station);
+    static const char typeToString(DistributionType type);
+
     // TODO: kod testowy, wywalić później
     Event demoEvent();
 

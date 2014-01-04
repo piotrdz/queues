@@ -6,6 +6,8 @@
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 
+#include <cmath>
+
 
 namespace
 {
@@ -14,6 +16,8 @@ namespace
     const qreal TASK_RECT_SPACING = 2.0;
     const qreal QUEUE_SPACING = 8.0;
     const qreal PROCESSOR_SPACING = 6.0;
+    const qreal INPUT_OUTPUT_DIAMETER = 40.0;
+    const int OUTLINE_VERTICES = 8;
 }
 
 
@@ -82,6 +86,13 @@ void StationItem::reset()
 
 void StationItem::newEvent(Event event)
 {
+    if (m_stationInfo.id == INPUT_STATION_ID ||
+        m_stationInfo.id == OUTPUT_STATION_ID)
+    {
+        qDebug() << "Event at input/output station";
+        return;
+    }
+
     if (event.type == EventType::TaskAddedToQueue)
     {
         if (m_stationInfo.queueLength == 0)
@@ -229,8 +240,31 @@ QRectF StationItem::getBaseRect() const
     return baseRect;
 }
 
+QPolygonF StationItem::getOutlineBasePolygon() const
+{
+    if (m_stationInfo.id == INPUT_STATION_ID ||
+        m_stationInfo.id == OUTPUT_STATION_ID)
+    {
+        QPolygonF circle;
+        for (int i = 0; i <= OUTLINE_VERTICES; ++i)
+        {
+            circle.append(QPointF(std::sin(2.0 * i * M_PI / OUTLINE_VERTICES) * INPUT_OUTPUT_DIAMETER/2.0,
+                                  std::cos(2.0 * i * M_PI / OUTLINE_VERTICES) * INPUT_OUTPUT_DIAMETER/2.0));
+        }
+        return circle;
+    }
+
+    return QPolygonF(getBaseRect());
+}
+
 QSizeF StationItem::getBaseSize() const
 {
+    if (m_stationInfo.id == INPUT_STATION_ID ||
+        m_stationInfo.id == OUTPUT_STATION_ID)
+    {
+        return QSizeF(INPUT_OUTPUT_DIAMETER, INPUT_OUTPUT_DIAMETER);
+    }
+
     QSizeF labelSize = getLabelSize();
 
     QSizeF processorTaskSize = getProcessorTaskSize();
@@ -289,9 +323,6 @@ QString StationItem::getLabel() const
 void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     QSizeF baseSize = getBaseSize();
-    QSizeF labelSize = getLabelSize();
-    QSizeF processorTaskSize = getProcessorTaskSize();
-    QSizeF queueTaskSize = getQueueTaskSize();
 
     painter->translate(-baseSize.width() / 2.0 - SELECTION_MARKER_SIZE, -baseSize.height() / 2.0 - SELECTION_MARKER_SIZE);
 
@@ -313,6 +344,39 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     }
 
     painter->translate(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
+
+    // input/output
+    if (m_stationInfo.id == INPUT_STATION_ID ||
+        m_stationInfo.id == OUTPUT_STATION_ID)
+    {
+        QRectF baseRect(QRectF(QPointF(0, 0), baseSize));
+
+        painter->setBrush(QBrush(Qt::NoBrush));
+        painter->setPen(QPen(Qt::black));
+
+        painter->drawEllipse(baseRect);
+
+        QString text;
+        if (m_stationInfo.id == INPUT_STATION_ID)
+        {
+            text = "WE";
+        }
+        else
+        {
+            text = "WY";
+        }
+
+        painter->setFont(m_labelFont);
+        painter->setBrush(QBrush(Qt::NoBrush));
+        painter->setPen(QPen(Qt::darkBlue));
+        painter->drawText(baseRect, Qt::AlignCenter, text);
+
+        return;
+    }
+
+    QSizeF labelSize = getLabelSize();
+    QSizeF processorTaskSize = getProcessorTaskSize();
+    QSizeF queueTaskSize = getQueueTaskSize();
 
     // bounding rect
 

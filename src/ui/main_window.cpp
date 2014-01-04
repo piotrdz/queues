@@ -205,25 +205,47 @@ void MainWindow::setSampleSimulationInstance()
 {
     SimulationInstance instance;
 
+    Station input;
+    input.id = INPUT_STATION_ID;
+    input.position = QPointF(-220, 0);
+    instance.stations.append(input);
+
     Station station1;
     station1.id = 1;
     station1.processorCount = 1;
     station1.queueLength = 2;
-    station1.position = QPointF(-80, -80);
+    station1.position = QPointF(-80, 0);
     instance.stations.append(station1);
 
     Station station2;
     station2.id = 2;
     station2.processorCount = 2;
     station2.queueLength = 3;
-    station2.position = QPointF(80, 80);
+    station2.position = QPointF(80, 0);
     instance.stations.append(station2);
 
-    Connection connectionInfo;
-    connectionInfo.from = 1;
-    connectionInfo.to = 2;
-    connectionInfo.weight = 1;
-    instance.connections.append(connectionInfo);
+    Station output;
+    output.id = OUTPUT_STATION_ID;
+    output.position = QPointF(220, 0);
+    instance.stations.append(output);
+
+    Connection connection1;
+    connection1.from = INPUT_STATION_ID;
+    connection1.to = 1;
+    connection1.weight = 1;
+    instance.connections.append(connection1);
+
+    Connection connection2;
+    connection2.from = 1;
+    connection2.to = 2;
+    connection2.weight = 1;
+    instance.connections.append(connection2);
+
+    Connection connection3;
+    connection3.from = 2;
+    connection3.to = OUTPUT_STATION_ID;
+    connection3.weight = 1;
+    instance.connections.append(connection3);
 
     setSimulationInstance(instance);
 }
@@ -259,7 +281,7 @@ void MainWindow::arrivalDistributionParamsChanged()
 void MainWindow::updateStationParams()
 {
     int id = m_simulationScene->getSelectedStationId();
-    if (id == -1)
+    if (id == INVALID_STATION_ID)
     {
         m_ui->stationOptionsDockWidgetContents->setEnabled(false);
     }
@@ -338,7 +360,7 @@ void MainWindow::updateConnectionParams()
 {
     auto selectedConnection = m_simulationScene->getSelectedConnection();
 
-    if (selectedConnection.first == -1)
+    if (selectedConnection.first == INVALID_STATION_ID)
     {
         m_ui->connectionOptionsDockWidgetContents->setEnabled(false);
     }
@@ -393,6 +415,12 @@ void MainWindow::addNewConnection(int from, int to)
 
 void MainWindow::removeStation(int id)
 {
+    if (id == INPUT_STATION_ID ||
+        id == OUTPUT_STATION_ID)
+    {
+        return;
+    }
+
     m_simulation->removeStation(id);
     m_simulationScene->removeStation(id);
 }

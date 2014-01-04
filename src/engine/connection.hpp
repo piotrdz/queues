@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/station.hpp"
+
 struct Connection
 {
     int from;
@@ -7,8 +9,8 @@ struct Connection
     int weight;
 
     Connection()
-     : from(0)
-     , to(0)
+     : from(INVALID_STATION_ID)
+     , to(INVALID_STATION_ID)
      , weight(0)
     {}
 };

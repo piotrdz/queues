@@ -24,7 +24,7 @@ public:
     void reset();
     void newEvent(Event event);
 
-    QRectF getBaseRect() const;
+    QPolygonF getOutlineBasePolygon() const;
 
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
@@ -33,6 +33,7 @@ public:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
 private:
+    QRectF getBaseRect() const;
     QSizeF getBaseSize() const;
     QSizeF getLabelSize() const;
     QSizeF getProcessorTaskSize() const;

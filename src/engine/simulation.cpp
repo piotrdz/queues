@@ -1,20 +1,25 @@
 #include "engine/simulation.hpp"
+
+#include <QDebug>
+#include <QPointF>
+#include <QStack>
+#include <QSet>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <QPointF>
 
 
 Simulation::Simulation()
  : m_currentTime(0.0)
- , m_nextStationId(0)
+ , m_nextStationId(1)
 {}
 
 void Simulation::setInstance(const SimulationInstance& instance)
 {
     m_instance = instance;
 
-    m_nextStationId = 0;
+    m_nextStationId = 1;
     for (const Station& station : m_instance.stations)
     {
         m_nextStationId = std::max(m_nextStationId, station.id+1);
@@ -148,8 +153,18 @@ void Simulation::removeConnection(int from, int to)
 
 bool Simulation::isConnectionPossible(int from, int to) const
 {
+    if (to == INPUT_STATION_ID || from == OUTPUT_STATION_ID)
+    {
+        return false;
+    }
+
+    if (connectionExists(from, to) || connectionExists(to, from))
+    {
+        return false;
+    }
+
     // TODO cykle...
-    return !connectionExists(from, to) && !connectionExists(to, from);
+    return true;
 }
 
 void Simulation::reset()
@@ -324,26 +339,44 @@ SimulationInstance Simulation::readFromFile(std::string path)
             {
                 //add new station
                 Station newStation = Station();
-                newStation.id = ++stationId;
-                loadDistribution(line, newStation);
 
-                float posX = 0.0;
-                float posY = 0.0;
-                unsigned comaPos = line.find(",");
-                newStation.processorCount = atoi(line.substr(comaPos+1,1).c_str());
-                if (line.substr(comaPos+3, 4) == "FIFO")
+                unsigned comaPos = 0;
+
+                if (line.substr(0, 2) == "WE")
                 {
-                    newStation.queueType = QueueType::Fifo;
+                    newStation.id = INPUT_STATION_ID;
+                    line = line.substr(3);
+                }
+                else if (line.substr(0, 2) == "WY")
+                {
+                    newStation.id = OUTPUT_STATION_ID;
+                    line = line.substr(3);
                 }
                 else
                 {
-                    newStation.queueType = QueueType::Random;
+                    newStation.id = ++stationId;
+                    loadDistribution(line, newStation);
+
+                    comaPos = line.find(",");
+                    newStation.processorCount = atoi(line.substr(comaPos+1,1).c_str());
+                    if (line.substr(comaPos+3, 4) == "FIFO")
+                    {
+                        newStation.queueType = QueueType::Fifo;
+                    }
+                    else
+                    {
+                        newStation.queueType = QueueType::Random;
+                    }
+                    line = line.substr(comaPos+8);
+                    comaPos = line.find(",");
+                    newStation.queueLength = atoi(line.substr(0, comaPos).c_str());
+                    line = line.substr(comaPos+1);
                 }
-                line = line.substr(comaPos+8);
+
                 comaPos = line.find(",");
-                newStation.queueLength = atoi(line.substr(0, comaPos).c_str());
-                line = line.substr(comaPos+1);
-                comaPos = line.find(",");
+
+                float posX = 0.0;
+                float posY = 0.0;
                 posX = atof(line.substr(0, comaPos).c_str());
                 posY = atof(line.substr(comaPos+1, line.length()-comaPos).c_str());
                 QPointF point(posX, posY);
@@ -354,14 +387,11 @@ SimulationInstance Simulation::readFromFile(std::string path)
             else if(lineNo > stationsNo)
             {
                 //add new connection
-                //1 - wejście do całego systemu
-                //stanowiska numerujemy od 1 do n
-                //n - wyjście z całego systemu
                 Connection newCon = Connection();
                 unsigned comaPos = line.find(",");
                 if (line[0] == 'W')
                 {
-                    newCon.from = 1;
+                    newCon.from = INPUT_STATION_ID;
                 }
                 else
                 {
@@ -371,7 +401,7 @@ SimulationInstance Simulation::readFromFile(std::string path)
                 comaPos = line.find(",");
                 if (line[0] == 'W')
                 {
-                    newCon.to = stationsNo;
+                    newCon.to = OUTPUT_STATION_ID;
                 }
                 else
                 {
@@ -428,35 +458,48 @@ void Simulation::saveToFile(std::string path, const SimulationInstance& simInsta
         for (int i=0; i< simInstance.stations.size(); i++)
         {
             line.clear();
-            line.append(1, typeToString(simInstance.stations[i].serviceTimeDistribution.type));
-            strStream1.str("");
-            strStream1 << simInstance.stations[i].serviceTimeDistribution.param1;
-            line.append(strStream1.str());
-            if(line[0] == 'N' || line[0] == 'U')
+
+            if (simInstance.stations[i].id == INPUT_STATION_ID)
             {
-                strStream2.str("");
-                strStream2 << simInstance.stations[i].serviceTimeDistribution.param2;
-                line.append("_" + strStream2.str());
+                line.append("WE");
             }
-            strStream1.str("");
-            strStream1 << simInstance.stations[i].processorCount;
-            line.append("," + strStream1.str());
-            if (simInstance.stations[i].queueType == QueueType::Fifo)
+            else if (simInstance.stations[i].id == OUTPUT_STATION_ID)
             {
-                line.append(",FIFO");
+                line.append("WY");
             }
             else
             {
-                line.append(",RAND");
+                line.append(1, typeToString(simInstance.stations[i].serviceTimeDistribution.type));
+                strStream1.str("");
+                strStream1 << simInstance.stations[i].serviceTimeDistribution.param1;
+                line.append(strStream1.str());
+                if(line[0] == 'N' || line[0] == 'U')
+                {
+                    strStream2.str("");
+                    strStream2 << simInstance.stations[i].serviceTimeDistribution.param2;
+                    line.append("_" + strStream2.str());
+                }
+                strStream1.str("");
+                strStream1 << simInstance.stations[i].processorCount;
+                line.append("," + strStream1.str());
+                if (simInstance.stations[i].queueType == QueueType::Fifo)
+                {
+                    line.append(",FIFO");
+                }
+                else
+                {
+                    line.append(",RAND");
+                }
+                strStream1.str("");
+                strStream1 << simInstance.stations[i].queueLength;
+                line.append("," + strStream1.str());
             }
-            strStream1.str("");
-            strStream1 << simInstance.stations[i].queueLength;
-            line.append("," + strStream1.str());
+
             strStream1.str("");
             strStream2.str("");
             strStream1 << simInstance.stations[i].position.x();
             strStream2 << simInstance.stations[i].position.y();
-            line.append("," + strStream1.str() + "," + strStream2.str());     
+            line.append("," + strStream1.str() + "," + strStream2.str());
 
             line.append("\n");
             confFile << line;
@@ -464,10 +507,9 @@ void Simulation::saveToFile(std::string path, const SimulationInstance& simInsta
 
         for (int i=0; i < simInstance.connections.size(); i++)
         {
-            const int stationsNo = simInstance.stations.size();
             line.clear();
 
-            if (simInstance.connections[i].from == 1)
+            if (simInstance.connections[i].from == INPUT_STATION_ID)
             {
                 line.append("WE,");
             }
@@ -477,7 +519,7 @@ void Simulation::saveToFile(std::string path, const SimulationInstance& simInsta
                 strStream1 << simInstance.connections[i].from;
                 line.append(strStream1.str() + ",");
             }
-            if (simInstance.connections[i].to == stationsNo)
+            if (simInstance.connections[i].to == OUTPUT_STATION_ID)
             {
                 line.append("WY,");
             }
@@ -493,7 +535,7 @@ void Simulation::saveToFile(std::string path, const SimulationInstance& simInsta
 
             confFile << line;
         }
-        confFile.close(); 
+        confFile.close();
     }
 }
 

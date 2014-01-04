@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/station.hpp"
+
 enum class EventType
 {
     TaskInput,             //!< wejście zdarzenia do sieci
@@ -22,7 +24,7 @@ struct Event
     Event()
      : type(EventType::TaskInput)
      , time(0.0)
-     , stationId(0)
+     , stationId(INVALID_STATION_ID)
      , taskId(0)
     {}
 

@@ -25,12 +25,18 @@ struct StationParams
    {}
 };
 
+const int INVALID_STATION_ID = 0;
+
+const int INPUT_STATION_ID = -1;
+const int OUTPUT_STATION_ID = -2;
+
+
 struct Station : public StationParams
 {
     int id;
 
     Station()
-     : id(0)
+     : id(INVALID_STATION_ID)
     {}
 
     void setParams(const StationParams& params)
