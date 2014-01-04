@@ -163,8 +163,50 @@ bool Simulation::isConnectionPossible(int from, int to) const
         return false;
     }
 
-    // TODO cykle...
-    return true;
+    QList<Connection> newConnections = m_instance.connections;
+    Connection newConnection;
+    newConnection.from = from;
+    newConnection.to = to;
+    newConnections.append(newConnection);
+
+    QMap<int, int> stationMarkings;
+    QStack<Connection> connectionsToExplore;
+
+    bool hasCycle = false;
+    int currentStation = from;
+    int connectedStationMarking = 0;
+    while (!hasCycle)
+    {
+        int currentStationMarking = connectedStationMarking + 1;
+        stationMarkings[currentStation] = currentStationMarking;
+
+        for (const Connection& connection : newConnections)
+        {
+            if (connection.from == currentStation)
+            {
+                if (stationMarkings.contains(connection.to) && stationMarkings.value(connection.to) < currentStationMarking)
+                {
+                    hasCycle = true;
+                    break;
+                }
+                else
+                {
+                    connectionsToExplore.push(connection);
+                }
+            }
+        }
+
+        if (connectionsToExplore.empty())
+        {
+            break;
+        }
+
+        Connection connection = connectionsToExplore.pop();
+        connectedStationMarking = stationMarkings[connection.from];
+        currentStation = connection.to;
+    }
+
+    return !hasCycle;
 }
 
 void Simulation::reset()
