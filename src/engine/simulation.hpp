@@ -36,11 +36,14 @@ public:
     double getCurrentTime();
     double getTimeToNextStep();
 
+    bool check() const;
+
     static SimulationInstance readFromFile(std::string path);
     static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
     static bool check(const SimulationInstance& instance);
 
 private:
+    static bool checkForCycles(const QList<Connection>& connections, int startStation);
     static void loadDistribution(std::string line, Station& station);
     static const char typeToString(DistributionType type);
 

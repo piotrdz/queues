@@ -470,6 +470,7 @@ void MainWindow::resetClicked()
     m_simulationThread->resetSimulation();
     m_simulationScene->reset();
     m_statisticsWindow->reset();
+    m_ui->simulationView->setInteractive(true);
 }
 
 void MainWindow::startStopClicked()
@@ -479,12 +480,21 @@ void MainWindow::startStopClicked()
         m_ui->singleStepButton->setEnabled(true);
         m_ui->startStopButton->setText("Start");
         m_simulationThread->stopSimulation();
+        m_ui->simulationView->setInteractive(true);
     }
     else
     {
+        if (!m_simulation->check())
+        {
+            QMessageBox::critical(this, QString::fromUtf8("Kolejki - błąd"),
+                                  QString::fromUtf8("Nie można przeprowadzić symulacji - instancja systemu nie jest poprawna!"));
+            return;
+        }
+
         m_ui->singleStepButton->setEnabled(false);
         m_ui->startStopButton->setText("Stop");
         m_simulationThread->startSimulation();
+        m_ui->simulationView->setInteractive(false);
     }
 }
 

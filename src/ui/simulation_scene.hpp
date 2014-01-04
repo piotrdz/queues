@@ -61,6 +61,5 @@ private:
     QList<StationItem*> m_stationItems;
     QList<ConnectionItem*> m_connectionItems;
     ConnectionItem* m_newConnection;
-    int m_nextStationId;
     QObject* m_viewEventFilter;
 };
