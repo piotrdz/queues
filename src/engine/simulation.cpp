@@ -343,13 +343,13 @@ void Simulation::processTaskInput(Event event)
         taskAddedToQueueEvent.taskId = event.taskId;
         taskAddedToQueueEvent.stationId = connectionToFollow.to;
         m_eventQueue.enqueue(taskAddedToQueueEvent);
-
-        Event nextTaskEvent;
-        nextTaskEvent.type = EventType::TaskInput;
-        nextTaskEvent.time = event.time + generateTime(m_instance.arrivalTimeDistribution);
-        nextTaskEvent.taskId = generateTaskId();
-        m_eventQueue.enqueue(nextTaskEvent);
     }
+
+    Event nextTaskEvent;
+    nextTaskEvent.type = EventType::TaskInput;
+    nextTaskEvent.time = event.time + generateTime(m_instance.arrivalTimeDistribution);
+    nextTaskEvent.taskId = generateTaskId();
+    m_eventQueue.enqueue(nextTaskEvent);
 }
 
 void Simulation::processTaskAddedToQueue(Event event)
