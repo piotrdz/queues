@@ -47,6 +47,7 @@ set(queues_SOURCES
     src/main.cpp
 
     src/engine/simulation.cpp
+    src/engine/event_priority_queue.cpp
 
     src/stats/station_stats.cpp
     src/stats/system_stats.cpp

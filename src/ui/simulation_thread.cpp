@@ -103,6 +103,7 @@ void SimulationThread::run()
         if (!m_speedChanged && (m_state == State::Running || m_state == State::SingleStep))
         {
             Event event = m_simulation->simulateNextStep();
+            m_simulation->debugDump();
             emit newEvent(event);
             m_elapsedTimer.start();
         }

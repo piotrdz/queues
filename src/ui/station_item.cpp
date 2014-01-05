@@ -74,14 +74,16 @@ void StationItem::reset()
     m_tasksInQueue.clear();
     for (int i = 0; i < m_stationInfo.queueLength; ++i)
     {
-        m_tasksInQueue.append(0);
+        m_tasksInQueue.append(EMPTY_TASK_ID);
     }
 
     m_tasksInProcessors.clear();
     for (int i = 0; i < m_stationInfo.processorCount; ++i)
     {
-        m_tasksInProcessors.append(0);
+        m_tasksInProcessors.append(EMPTY_TASK_ID);
     }
+
+    update();
 }
 
 void StationItem::newEvent(Event event)
@@ -104,7 +106,7 @@ void StationItem::newEvent(Event event)
             bool addedOk = false;
             for (int& task : m_tasksInQueue)
             {
-                if (task == 0)
+                if (task == EMPTY_TASK_ID)
                 {
                     task = event.taskId;
                     addedOk = true;
@@ -130,15 +132,31 @@ void StationItem::newEvent(Event event)
         else
         {
             bool removedOk = false;
-            for (int& task : m_tasksInQueue)
+            QList<int> newTasks;
+            for (int task : m_tasksInQueue)
             {
                 if (task == event.taskId)
                 {
-                    task = 0;
                     removedOk = true;
-                    break;
+                }
+                else
+                {
+                    newTasks.append(task);
                 }
             }
+
+            for (int i = 0; i < m_tasksInQueue.size(); ++i)
+            {
+                if (i < newTasks.size())
+                {
+                    m_tasksInQueue[i] = newTasks[i];
+                }
+                else
+                {
+                    m_tasksInQueue[i] = EMPTY_TASK_ID;
+                }
+            }
+
             if (!removedOk)
             {
                 qDebug() << "Task not in queue:" << event.taskId;
@@ -148,7 +166,7 @@ void StationItem::newEvent(Event event)
         bool addedOk = false;
         for (int& processorTask : m_tasksInProcessors)
         {
-            if (processorTask == 0)
+            if (processorTask == EMPTY_TASK_ID)
             {
                 processorTask = event.taskId;
                 addedOk = true;
@@ -186,7 +204,7 @@ void StationItem::newEvent(Event event)
         {
             if (processorTask == -event.taskId)
             {
-                processorTask = 0;
+                processorTask = EMPTY_TASK_ID;
                 changedOk = true;
                 break;
             }
@@ -430,7 +448,7 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
         else
         {
             int task = m_tasksInQueue.at(m_tasksInQueue.size() - i - 1);
-            if (task != 0)
+            if (task != EMPTY_TASK_ID)
             {
                 taskText.setNum(task);
             }
@@ -453,7 +471,7 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     {
         QString taskText;
         int task = m_tasksInProcessors.at(i);
-        if (task != 0)
+        if (task != EMPTY_TASK_ID)
         {
             taskText.setNum(m_tasksInProcessors.at(i));
         }

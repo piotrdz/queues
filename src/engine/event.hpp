@@ -13,6 +13,7 @@ enum class EventType
     QueueHasPlace          //!< miejsce w kolejce zostało zwolnione
 };
 
+const int EMPTY_TASK_ID = 0;
 
 struct Event
 {
@@ -25,7 +26,7 @@ struct Event
      : type(EventType::TaskInput)
      , time(0.0)
      , stationId(INVALID_STATION_ID)
-     , taskId(0)
+     , taskId(EMPTY_TASK_ID)
     {}
 
     Event(EventType type,
