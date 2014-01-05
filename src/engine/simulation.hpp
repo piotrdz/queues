@@ -12,18 +12,36 @@
 class Simulation
 {
 private:
-    struct StationState
+    struct WorkingStation : public Station
     {
-        int stationId;
+        WorkingStation(const Station& station);
+
+        void resetStateParams();
+
         QList<int> tasksInQueue;
         QList<int> tasksInProcessors;
+    };
+
+    struct WorkingInstance
+    {
+        WorkingInstance();
+        WorkingInstance(const SimulationInstance& simulationInstance);
+        WorkingInstance& operator=(const SimulationInstance& simulationInstance);
+
+        void setStations(const QList<Station>& stations);
+
+        SimulationInstance toSimulationInstance() const;
+
+        Distribution arrivalTimeDistribution;
+        QList<WorkingStation> workingStations;
+        QList<Connection> connections;
     };
 
 public:
     Simulation();
 
     void setInstance(const SimulationInstance& instance);
-    const SimulationInstance& getInstance() const;
+    SimulationInstance getInstance() const;
 
     void addStation(const Station& station);
     void addConnection(const Connection& connection);
@@ -48,14 +66,13 @@ public:
     double getCurrentTime();
     double getTimeToNextStep();
 
-    void debugDump();
-
     bool check() const;
-
     static bool check(const SimulationInstance& instance);
 
     static SimulationInstance readFromFile(std::string path);
     static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
+
+    void debugDump();
 
 private:
 
@@ -70,18 +87,17 @@ private:
     int generateTaskId();
     QList<Connection> getConnectionsFrom(int stationId) const;
     QList<Connection> getConnectionsTo(int stationId) const;
-    StationState& getStationState(int stationId);
+    WorkingStation& getWorkingStation(int stationId);
 
     double generateTime(const Distribution& distribution);
     Connection chooseConnectionToFollow(const QList<Connection>& connections);
     int chooseRandomTaskFromQueue(const QList<int>& tasks);
 
 private:
-    SimulationInstance m_instance;
+    WorkingInstance m_instance;
+    EventPriorityQueue m_eventQueue;
     int m_nextStationId;
     int m_nextTaskId;
     double m_currentTime;
-    QList<StationState> m_stationStates;
-    EventPriorityQueue m_eventQueue;
     boost::random::mt19937 m_randomGenerator;
 };

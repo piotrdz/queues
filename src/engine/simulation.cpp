@@ -11,6 +11,74 @@
 namespace rnd = boost::random;
 
 
+Simulation::WorkingStation::WorkingStation(const Station& station)
+{
+    static_cast<Station&>(*this) = station;
+    resetStateParams();
+}
+
+void Simulation::WorkingStation::resetStateParams()
+{
+    tasksInQueue.clear();
+    for (int i = 0; i < queueLength; ++i)
+    {
+        tasksInQueue.append(EMPTY_TASK_ID);
+    }
+    tasksInProcessors.clear();
+    for (int i = 0; i < processorCount; ++i)
+    {
+        tasksInProcessors.append(EMPTY_TASK_ID);
+    }
+}
+
+////////////////////////////////////////////////
+
+Simulation::WorkingInstance::WorkingInstance()
+{}
+
+Simulation::WorkingInstance::WorkingInstance(const SimulationInstance& simulationInstance)
+ : arrivalTimeDistribution(simulationInstance.arrivalTimeDistribution)
+ , connections(simulationInstance.connections)
+{
+    setStations(simulationInstance.stations);
+}
+
+Simulation::WorkingInstance& Simulation::WorkingInstance::operator=(const SimulationInstance& simulationInstance)
+{
+    arrivalTimeDistribution = simulationInstance.arrivalTimeDistribution;
+    connections = simulationInstance.connections;
+    setStations(simulationInstance.stations);
+    return *this;
+}
+
+void Simulation::WorkingInstance::setStations(const QList<Station>& stations)
+{
+    workingStations.clear();
+
+    for (const Station& baseStation : stations)
+    {
+        workingStations.append(WorkingStation(baseStation));
+    }
+}
+
+SimulationInstance Simulation::WorkingInstance::toSimulationInstance() const
+{
+    SimulationInstance simulationInstance;
+
+    simulationInstance.arrivalTimeDistribution = arrivalTimeDistribution;
+    simulationInstance.connections = connections;
+
+    for (const WorkingStation& workingStation : workingStations)
+    {
+        simulationInstance.stations.append(workingStation);
+    }
+
+    return simulationInstance;
+}
+
+
+////////////////////////////////////////////////
+
 Simulation::Simulation()
  : m_nextStationId(1)
  , m_nextTaskId(1)
@@ -22,7 +90,7 @@ void Simulation::setInstance(const SimulationInstance& instance)
     m_instance = instance;
 
     m_nextStationId = 1;
-    for (const Station& station : m_instance.stations)
+    for (const Station& station : m_instance.workingStations)
     {
         m_nextStationId = std::max(m_nextStationId, station.id+1);
     }
@@ -30,27 +98,15 @@ void Simulation::setInstance(const SimulationInstance& instance)
     reset();
 }
 
-const SimulationInstance& Simulation::getInstance() const
+SimulationInstance Simulation::getInstance() const
 {
-    return m_instance;
+    return m_instance.toSimulationInstance();
 }
 
 void Simulation::addStation(const Station& station)
 {
-    m_instance.stations.append(station);
+    m_instance.workingStations.append(WorkingStation(station));
     m_nextStationId = std::max(m_nextStationId, station.id+1);
-
-    StationState stationState;
-    stationState.stationId = station.id;
-    for (int i = 0; i < station.queueLength; ++i)
-    {
-        stationState.tasksInQueue.append(EMPTY_TASK_ID);
-    }
-    for (int i = 0; i < station.processorCount; ++i)
-    {
-        stationState.tasksInProcessors.append(EMPTY_TASK_ID);
-    }
-    m_stationStates.append(stationState);
 }
 
 void Simulation::addConnection(const Connection& connection)
@@ -70,7 +126,7 @@ int Simulation::getNextStationId() const
 
 Station Simulation::getStation(int id) const
 {
-    for (const Station& station : m_instance.stations)
+    for (const WorkingStation& station : m_instance.workingStations)
     {
         if (station.id == id)
         {
@@ -83,24 +139,13 @@ Station Simulation::getStation(int id) const
 
 void Simulation::changeStation(int id, const StationParams& stationParams)
 {
-    for (Station& station : m_instance.stations)
+    for (WorkingStation& station : m_instance.workingStations)
     {
         if (station.id == id)
         {
             station.setParams(stationParams);
+            station.resetStateParams();
         }
-    }
-
-    StationState& stationState = getStationState(id);
-    stationState.tasksInQueue.clear();
-    for (int i = 0; i < stationParams.queueLength; ++i)
-    {
-        stationState.tasksInQueue.append(EMPTY_TASK_ID);
-    }
-    stationState.tasksInProcessors.clear();
-    for (int i = 0; i < stationParams.processorCount; ++i)
-    {
-        stationState.tasksInProcessors.append(EMPTY_TASK_ID);
     }
 }
 
@@ -143,20 +188,11 @@ bool Simulation::connectionExists(int from, int to) const
 
 void Simulation::removeStation(int id)
 {
-    for (auto stationIt = m_instance.stations.begin(); stationIt != m_instance.stations.end(); ++stationIt)
+    for (auto stationIt = m_instance.workingStations.begin(); stationIt != m_instance.workingStations.end(); ++stationIt)
     {
         if (stationIt->id == id)
         {
-            m_instance.stations.erase(stationIt);
-            break;
-        }
-    }
-
-    for (auto stationStateIt = m_stationStates.begin(); stationStateIt != m_stationStates.end(); ++stationStateIt)
-    {
-        if (stationStateIt->stationId == id)
-        {
-            m_stationStates.erase(stationStateIt);
+            m_instance.workingStations.erase(stationIt);
             break;
         }
     }
@@ -195,6 +231,11 @@ bool Simulation::isConnectionPossible(int from, int to) const
         return false;
     }
 
+    if (from == INPUT_STATION_ID && to == OUTPUT_STATION_ID)
+    {
+        return false;
+    }
+
     if (connectionExists(from, to) || connectionExists(to, from))
     {
         return false;
@@ -225,21 +266,9 @@ void Simulation::reset()
     initialTaskEvent.taskId = generateTaskId();
     m_eventQueue.enqueue(initialTaskEvent);
 
-    m_stationStates.clear();
-
-    for (const Station& station : m_instance.stations)
+    for (WorkingStation& station : m_instance.workingStations)
     {
-        StationState stationState;
-        stationState.stationId = station.id;
-        for (int i = 0; i < station.queueLength; ++i)
-        {
-            stationState.tasksInQueue.append(EMPTY_TASK_ID);
-        }
-        for (int i = 0; i < station.processorCount; ++i)
-        {
-            stationState.tasksInProcessors.append(EMPTY_TASK_ID);
-        }
-        m_stationStates.append(stationState);
+        station.resetStateParams();
     }
 }
 
@@ -264,29 +293,6 @@ Event Simulation::simulateNextStep()
     Event event = m_eventQueue.dequeue();
     processEvent(event);
     return event;
-}
-
-void Simulation::debugDump()
-{
-    qDebug() << "currentTime:" << m_currentTime;
-    qDebug() << "eventQueue:";
-
-    QList<Event> allTasks = m_eventQueue.getAll();
-    for (const Event& event : allTasks)
-    {
-        qDebug() << " time:" << event.time << ", type:" << event.type << ", stationId:" << event.stationId << ", taskId:" << event.taskId;
-    }
-
-    qDebug() << "stationStates:";
-    for (const StationState& stationState : m_stationStates)
-    {
-        if (stationState.stationId == INPUT_STATION_ID || stationState.stationId == OUTPUT_STATION_ID)
-        {
-            continue;
-        }
-
-        qDebug() << " stationId:" << stationState.stationId << ",tasksInQueue:" << stationState.tasksInQueue << ",tasksInProcessors:" << stationState.tasksInProcessors;
-    }
 }
 
 void Simulation::processEvent(Event event)
@@ -348,16 +354,15 @@ void Simulation::processTaskInput(Event event)
 
 void Simulation::processTaskAddedToQueue(Event event)
 {
-    Station station = getStation(event.stationId);
-    StationState& stationState = getStationState(event.stationId);
+    WorkingStation& station = getWorkingStation(event.stationId);
 
     if (station.queueLength == 0)
     {
-        stationState.tasksInQueue.append(event.taskId);
+        station.tasksInQueue.append(event.taskId);
     }
     else
     {
-        for (int& task : stationState.tasksInQueue)
+        for (int& task : station.tasksInQueue)
         {
             if (task == EMPTY_TASK_ID)
             {
@@ -367,7 +372,7 @@ void Simulation::processTaskAddedToQueue(Event event)
         }
     }
 
-    bool canBeProcessed = stationState.tasksInProcessors.contains(EMPTY_TASK_ID);
+    bool canBeProcessed = station.tasksInProcessors.contains(EMPTY_TASK_ID);
 
     if (canBeProcessed)
     {
@@ -382,17 +387,16 @@ void Simulation::processTaskAddedToQueue(Event event)
 
 void Simulation::processTaskStartedProcessing(Event event)
 {
-    Station station = getStation(event.stationId);
-    StationState& stationState = getStationState(event.stationId);
+    WorkingStation& station = getWorkingStation(event.stationId);
 
     if (station.queueLength == 0)
     {
-        stationState.tasksInQueue.removeOne(event.taskId);
+        station.tasksInQueue.removeOne(event.taskId);
     }
     else
     {
         QList<int> newTasks;
-        for (int task : stationState.tasksInQueue)
+        for (int task : station.tasksInQueue)
         {
             if (task != event.taskId)
             {
@@ -400,20 +404,20 @@ void Simulation::processTaskStartedProcessing(Event event)
             }
         }
 
-        for (int i = 0; i < stationState.tasksInQueue.size(); ++i)
+        for (int i = 0; i < station.tasksInQueue.size(); ++i)
         {
             if (i < newTasks.size())
             {
-                stationState.tasksInQueue[i] = newTasks[i];
+                station.tasksInQueue[i] = newTasks[i];
             }
             else
             {
-                stationState.tasksInQueue[i] = EMPTY_TASK_ID;
+                station.tasksInQueue[i] = EMPTY_TASK_ID;
             }
         }
     }
 
-    for (int& processorTask : stationState.tasksInProcessors)
+    for (int& processorTask : station.tasksInProcessors)
     {
         if (processorTask == EMPTY_TASK_ID)
         {
@@ -449,9 +453,9 @@ void Simulation::processTaskQueueHasPlace(Event event)
             continue;
         }
 
-        StationState& connectedStationState = getStationState(connection.from);
+        WorkingStation& connectedStation = getWorkingStation(connection.from);
 
-        for (int processorTask : connectedStationState.tasksInProcessors)
+        for (int processorTask : connectedStation.tasksInProcessors)
         {
             if (processorTask < 0)
             {
@@ -486,9 +490,9 @@ void Simulation::processTaskQueueHasPlace(Event event)
 
 void Simulation::processTaskEndedProcessing(Event event)
 {
-    StationState& stationState = getStationState(event.stationId);
+    WorkingStation& station = getWorkingStation(event.stationId);
 
-    for (int& processorTask : stationState.tasksInProcessors)
+    for (int& processorTask : station.tasksInProcessors)
     {
         if (processorTask == event.taskId)
         {
@@ -533,10 +537,9 @@ void Simulation::processTaskEndedProcessing(Event event)
 
 void Simulation::processTaskMachineIsIdle(Event event)
 {
-    Station station = getStation(event.stationId);
-    StationState& stationState = getStationState(event.stationId);
+    WorkingStation& station = getWorkingStation(event.stationId);
 
-    for (int& processorTask : stationState.tasksInProcessors)
+    for (int& processorTask : station.tasksInProcessors)
     {
         if (processorTask == -event.taskId)
         {
@@ -548,11 +551,11 @@ void Simulation::processTaskMachineIsIdle(Event event)
     int nextTaskToBeProcessed = EMPTY_TASK_ID;
     if (station.queueType == QueueType::Fifo)
     {
-        nextTaskToBeProcessed = stationState.tasksInQueue.front();
+        nextTaskToBeProcessed = station.tasksInQueue.front();
     }
     else if (station.queueType == QueueType::Random)
     {
-        nextTaskToBeProcessed = chooseRandomTaskFromQueue(stationState.tasksInQueue);
+        nextTaskToBeProcessed = chooseRandomTaskFromQueue(station.tasksInQueue);
     }
 
     if (nextTaskToBeProcessed == EMPTY_TASK_ID)
@@ -599,21 +602,21 @@ QList<Connection> Simulation::getConnectionsTo(int stationId) const
     return connections;
 }
 
-Simulation::StationState& Simulation::getStationState(int stationId)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+Simulation::WorkingStation& Simulation::getWorkingStation(int stationId)
 {
-    for (StationState& stationState : m_stationStates)
+    for (WorkingStation& workingStation : m_instance.workingStations)
     {
-        if (stationState.stationId == stationId)
+        if (workingStation.id == stationId)
         {
-            return stationState;
+            return workingStation;
         }
     }
 
     qFatal("Station state for stationId=%d not found", stationId);
-
-    static StationState failStationState;
-    return failStationState;
 }
+#pragma GCC diagnostic pop
 
 double Simulation::generateTime(const Distribution& distribution)
 {
@@ -657,14 +660,13 @@ Connection Simulation::chooseConnectionToFollow(const QList<Connection>& connect
     QList<Connection> possibleConnections;
     for (const Connection& connection : connections)
     {
-        Station connectedStation = getStation(connection.to);
-        StationState& connectedStationState = getStationState(connection.to);
+        WorkingStation& connectedStation = getWorkingStation(connection.to);
 
         bool hasPlace = true;
 
         if (connectedStation.queueLength > 0)
         {
-            hasPlace = connectedStationState.tasksInQueue.contains(EMPTY_TASK_ID);
+            hasPlace = connectedStation.tasksInQueue.contains(EMPTY_TASK_ID);
         }
 
         if (hasPlace)
@@ -727,7 +729,7 @@ int Simulation::chooseRandomTaskFromQueue(const QList<int>& tasks)
 
 bool Simulation::check() const
 {
-    return SimulationCheckHelper::check(m_instance);
+    return SimulationCheckHelper::check(m_instance.toSimulationInstance());
 }
 
 bool Simulation::check(const SimulationInstance& instance)
@@ -743,4 +745,27 @@ SimulationInstance Simulation::readFromFile(std::string path)
 void Simulation::saveToFile(std::string path, const SimulationInstance& simulationInstance)
 {
     return SimulationInputOutputHelper::saveToFile(path, simulationInstance);
+}
+
+void Simulation::debugDump()
+{
+    qDebug() << "currentTime:" << m_currentTime;
+    qDebug() << "eventQueue:";
+
+    QList<Event> allTasks = m_eventQueue.getAll();
+    for (const Event& event : allTasks)
+    {
+        qDebug() << " time:" << event.time << ", type:" << event.type << ", stationId:" << event.stationId << ", taskId:" << event.taskId;
+    }
+
+    qDebug() << "stationStates:";
+    for (const WorkingStation& station : m_instance.workingStations)
+    {
+        if (station.id == INPUT_STATION_ID || station.id == OUTPUT_STATION_ID)
+        {
+            continue;
+        }
+
+        qDebug() << " stationId:" << station.id << ",tasksInQueue:" << station.tasksInQueue << ",tasksInProcessors:" << station.tasksInProcessors;
+    }
 }
