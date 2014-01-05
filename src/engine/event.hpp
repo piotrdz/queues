@@ -2,6 +2,9 @@
 
 #include "engine/station.hpp"
 
+#include <QDebug>
+
+
 enum class EventType
 {
     TaskInput,             //!< wejście zdarzenia do sieci
@@ -39,3 +42,41 @@ struct Event
      , taskId(taskId)
     {}
 };
+
+inline QDebug operator<<(QDebug dbg, EventType eventType)
+{
+    QString eventName;
+    switch (eventType)
+    {
+        case EventType::TaskInput:
+            eventName = "TaskInput";
+            break;
+
+        case EventType::TaskOutput:
+            eventName = "TaskOutput";
+            break;
+
+        case EventType::TaskAddedToQueue:
+            eventName = "TaskAddedToQueue";
+            break;
+
+        case EventType::TaskStartedProcessing:
+            eventName = "TaskStartedProcessing";
+            break;
+
+        case EventType::TaskEndedProcessing:
+            eventName = "TaskEndedProcessing";
+            break;
+
+        case EventType::MachineIsIdle:
+            eventName = "MachineIsIdle";
+            break;
+
+        case EventType::QueueHasPlace:
+            eventName = "QueueHasPlace";
+            break;
+    }
+
+    dbg.space() << eventName;
+    return dbg.space();
+}
