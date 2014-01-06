@@ -475,13 +475,14 @@ void Simulation::processTaskQueueHasPlace(Event event)
         Event machineIsIdleEvent;
         machineIsIdleEvent.type = EventType::MachineIsIdle;
         machineIsIdleEvent.time = event.time;
+        machineIsIdleEvent.taskId = finishedTaskFromConnectedStation;
         machineIsIdleEvent.stationId = connectedStationId;
         m_eventQueue.enqueue(machineIsIdleEvent);
 
         Event taskAddedToQueueEvent;
         taskAddedToQueueEvent.type = EventType::TaskAddedToQueue;
         taskAddedToQueueEvent.time = event.time;
-        taskAddedToQueueEvent.taskId = event.taskId;
+        taskAddedToQueueEvent.taskId = finishedTaskFromConnectedStation;
         taskAddedToQueueEvent.stationId = event.stationId;
         m_eventQueue.enqueue(machineIsIdleEvent);
     }
