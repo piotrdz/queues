@@ -202,8 +202,7 @@ void Simulation::removeStation(int id)
     {
         if (connectionIt->from == id || connectionIt->to == id)
         {
-            m_instance.connections.erase(connectionIt);
-            break;
+            connectionIt = m_instance.connections.erase(connectionIt);
         }
         else
         {
