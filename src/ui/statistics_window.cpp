@@ -10,7 +10,7 @@
 
 #include <qwt_plot_curve.h>
 
-#include <QDebug>
+#include <QMessageBox>
 
 #include <cmath>
 
@@ -46,6 +46,8 @@ StatisticsWindow::StatisticsWindow()
 
     connect(m_ui->addButton, SIGNAL(clicked()),
             this, SLOT(addNewStatistic()));
+    connect(m_ui->infoButton, SIGNAL(clicked()),
+            this, SLOT(showStatisticInfo()));
 }
 
 StatisticsWindow::~StatisticsWindow()
@@ -82,6 +84,19 @@ void StatisticsWindow::addNewStatistic()
     m_statisticsData.append(statisticsData);
 
     m_ui->plotWidget->replot();
+}
+
+void StatisticsWindow::showStatisticInfo()
+{
+    QMessageBox::information(this, QString::fromUtf8("Kolejki"),
+            QString::fromUtf8(
+                "Dostępne statystyki:\n"
+                "  T_t syst. - średni czas przetwarzania zadania w całym systemie\n"
+                "  N_t syst. - średnia liczba zadań w całym systemie\n"
+                "  U_p stac. - średnia liczba procesorów w użyciu w danej stacji\n"
+                "  T_q stac. - średni czas oczekiwania na obsługę w danej stacji\n"
+                "  N_q stac. - średnia długość kolejki w danej stacji\n"
+            ));
 }
 
 void StatisticsWindow::statisticTypeChanged(int index)

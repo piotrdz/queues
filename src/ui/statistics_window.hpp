@@ -30,6 +30,7 @@ public slots:
 
 private slots:
     void addNewStatistic();
+    void showStatisticInfo();
     void statisticTypeChanged(int index);
     void removeStatistic(int index);
 

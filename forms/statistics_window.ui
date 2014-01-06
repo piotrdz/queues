@@ -54,8 +54,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>246</width>
-            <height>428</height>
+            <width>463</width>
+            <height>426</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -73,6 +73,13 @@
           <widget class="QPushButton" name="addButton">
            <property name="text">
             <string>Dodaj</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="infoButton">
+           <property name="text">
+            <string>Opis statystyk</string>
            </property>
           </widget>
          </item>
