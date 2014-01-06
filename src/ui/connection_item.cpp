@@ -225,7 +225,7 @@ QPointF ConnectionItem::getDrawDestinationPoint() const
 
 QRectF ConnectionItem::getWeightLabelRect() const
 {
-    QLineF connectionLine(m_sourcePoint, getDestinationPoint());
+    QLineF connectionLine(getDrawSourcePoint(), getDrawDestinationPoint());
 
     QFontMetricsF metrics(m_weightFont);
 
@@ -284,8 +284,10 @@ void ConnectionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
         painter->setPen(QPen(Qt::black));
         painter->setBrush(QBrush(Qt::black));
 
-        painter->drawRect(QRectF(line.p1(), markerSize));
-        painter->drawRect(QRectF(line.p2(), markerSize));
+        QPointF halfPos(SELECTION_MARKER_SIZE/2.0, SELECTION_MARKER_SIZE/2.0);
+
+        painter->drawRect(QRectF(line.p1() - halfPos, markerSize));
+        painter->drawRect(QRectF(line.p2() - halfPos, markerSize));
     }
 
     painter->setPen(QPen(Qt::black, PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));

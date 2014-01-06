@@ -51,7 +51,6 @@ StationItem::~StationItem()
         }
     }
 
-    // edges shoula all remove themselves
     Q_ASSERT(m_connections.isEmpty());
 }
 
@@ -91,7 +90,7 @@ void StationItem::newEvent(Event event)
     if (m_stationInfo.id == INPUT_STATION_ID ||
         m_stationInfo.id == OUTPUT_STATION_ID)
     {
-        qDebug() << "Event at input/output station";
+        qDebug() << "ERROR: Event at input/output station";
         return;
     }
 
@@ -115,7 +114,7 @@ void StationItem::newEvent(Event event)
             }
             if (!addedOk)
             {
-                qDebug() << "Task does not fit in queue: " << event.taskId;
+                qDebug() << "ERROR: Task does not fit in queue: " << event.taskId;
             }
         }
     }
@@ -126,7 +125,7 @@ void StationItem::newEvent(Event event)
             bool removedOk = m_tasksInQueue.removeOne(event.taskId);
             if (!removedOk)
             {
-                qDebug() << "Task not in queue:" << event.taskId;
+                qDebug() << "ERROR: Task not in queue:" << event.taskId;
             }
         }
         else
@@ -159,7 +158,7 @@ void StationItem::newEvent(Event event)
 
             if (!removedOk)
             {
-                qDebug() << "Task not in queue:" << event.taskId;
+                qDebug() << "ERROR: Task not in queue:" << event.taskId;
             }
         }
 
@@ -176,7 +175,7 @@ void StationItem::newEvent(Event event)
 
         if (!addedOk)
         {
-            qDebug() << "Task could not be added to processor:" << event.taskId;
+            qDebug() << "ERROR: Task could not be added to processor:" << event.taskId;
         }
     }
     else if (event.type == EventType::TaskEndedProcessing)
@@ -194,7 +193,7 @@ void StationItem::newEvent(Event event)
 
         if (!changedOk)
         {
-            qDebug() << "Task not found on processors: " << event.taskId;
+            qDebug() << "ERROR: Task not found on processors: " << event.taskId;
         }
     }
     else if (event.type == EventType::MachineIsIdle)
@@ -212,7 +211,7 @@ void StationItem::newEvent(Event event)
 
         if (!changedOk)
         {
-            qDebug() << "Task not found on processors: " << event.taskId;
+            qDebug() << "ERROR: Task not found on processors: " << event.taskId;
         }
     }
 }
@@ -310,7 +309,7 @@ QSizeF StationItem::getLabelSize() const
 QSizeF StationItem::getProcessorTaskSize() const
 {
     QFontMetricsF metrics(m_taskFont);
-    QSizeF baseSize = metrics.size(0, "99");
+    QSizeF baseSize = metrics.size(0, "-*99");
     return baseSize + QSizeF(2*TASK_RECT_SPACING, 2*TASK_RECT_SPACING);
 }
 
@@ -325,7 +324,7 @@ QSizeF StationItem::getQueueTaskSize() const
     }
     else
     {
-        baseSize = metrics.size(0, "99");
+        baseSize = metrics.size(0, "-*99");
     }
 
     return baseSize + QSizeF(2*TASK_RECT_SPACING, 2*TASK_RECT_SPACING);
@@ -338,57 +337,40 @@ QString StationItem::getLabel() const
     return label;
 }
 
-void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+QString StationItem::getTaskText(int number)
+{
+    int absNumber = std::abs(number);
+
+    int numberOfDigits = static_cast<int>(std::ceil(std::log10(1.0 + static_cast<double>(absNumber))));
+
+    QString text;
+    if (numberOfDigits <= 2)
+    {
+        text.setNum(number);
+    }
+    else
+    {
+        text = QString("%1*%2").arg((number < 0) ? "-" : "").arg(absNumber % 100, 2, 10, QChar('0'));
+    }
+
+    return text;
+}
+
+void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
     QSizeF baseSize = getBaseSize();
 
-    painter->translate(-baseSize.width() / 2.0 - SELECTION_MARKER_SIZE, -baseSize.height() / 2.0 - SELECTION_MARKER_SIZE);
-
-    // selection markers
+    painter->translate(-baseSize.width() / 2.0, -baseSize.height() / 2.0);
 
     if (isSelected())
     {
-        QSizeF markerSize(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
-
-        painter->setPen(QPen(Qt::black));
-        painter->setBrush(QBrush(Qt::black));
-
-        painter->drawRect(QRectF(QPointF(0.0, 0.0), markerSize));
-        painter->drawRect(QRectF(QPointF(SELECTION_MARKER_SIZE + baseSize.width(), 0.0), markerSize));
-        painter->drawRect(QRectF(QPointF(0.0, SELECTION_MARKER_SIZE + baseSize.height()), markerSize));
-        painter->drawRect(QRectF(QPointF(SELECTION_MARKER_SIZE + baseSize.width(),
-                                         SELECTION_MARKER_SIZE + baseSize.height()),
-                                 markerSize));
+        paintSelectionMarkers(painter, baseSize);
     }
 
-    painter->translate(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
-
-    // input/output
     if (m_stationInfo.id == INPUT_STATION_ID ||
         m_stationInfo.id == OUTPUT_STATION_ID)
     {
-        QRectF baseRect(QRectF(QPointF(0, 0), baseSize));
-
-        painter->setBrush(QBrush(Qt::NoBrush));
-        painter->setPen(QPen(Qt::black));
-
-        painter->drawEllipse(baseRect);
-
-        QString text;
-        if (m_stationInfo.id == INPUT_STATION_ID)
-        {
-            text = "WE";
-        }
-        else
-        {
-            text = "WY";
-        }
-
-        painter->setFont(m_labelFont);
-        painter->setBrush(QBrush(Qt::NoBrush));
-        painter->setPen(QPen(Qt::darkBlue));
-        painter->drawText(baseRect, Qt::AlignCenter, text);
-
+        paintInputOutputNode(painter, baseSize);
         return;
     }
 
@@ -396,15 +378,69 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     QSizeF processorTaskSize = getProcessorTaskSize();
     QSizeF queueTaskSize = getQueueTaskSize();
 
-    // bounding rect
+    paintBoundingRect(painter, baseSize);
+
+    paintLabel(painter, labelSize);
+
+    paintQueue(painter, labelSize, queueTaskSize, processorTaskSize);
+
+    paintProcessors(painter, queueTaskSize, processorTaskSize);
+}
+
+void StationItem::paintSelectionMarkers(QPainter* painter, const QSizeF& baseSize)
+{
+    painter->translate(-SELECTION_MARKER_SIZE, -SELECTION_MARKER_SIZE);
+
+    QSizeF markerSize(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
+
+    painter->setPen(QPen(Qt::black));
+    painter->setBrush(QBrush(Qt::black));
+
+    painter->drawRect(QRectF(QPointF(0.0, 0.0), markerSize));
+    painter->drawRect(QRectF(QPointF(SELECTION_MARKER_SIZE + baseSize.width(), 0.0), markerSize));
+    painter->drawRect(QRectF(QPointF(0.0, SELECTION_MARKER_SIZE + baseSize.height()), markerSize));
+    painter->drawRect(QRectF(QPointF(SELECTION_MARKER_SIZE + baseSize.width(),
+                                        SELECTION_MARKER_SIZE + baseSize.height()),
+                                markerSize));
+
+    painter->translate(SELECTION_MARKER_SIZE, SELECTION_MARKER_SIZE);
+}
+
+void StationItem::paintInputOutputNode(QPainter* painter, const QSizeF& baseSize)
+{
+    QRectF baseRect(QRectF(QPointF(0, 0), baseSize));
 
     painter->setBrush(QBrush(Qt::NoBrush));
     painter->setPen(QPen(Qt::black));
 
+    painter->drawEllipse(baseRect);
+
+    QString text;
+    if (m_stationInfo.id == INPUT_STATION_ID)
+    {
+        text = "WE";
+    }
+    else
+    {
+        text = "WY";
+    }
+
+    painter->setFont(m_labelFont);
+    painter->setBrush(QBrush(Qt::NoBrush));
+    painter->setPen(QPen(Qt::darkBlue));
+    painter->drawText(baseRect, Qt::AlignCenter, text);
+}
+
+void StationItem::paintBoundingRect(QPainter* painter, const QSizeF& baseSize)
+{
+    painter->setBrush(QBrush(Qt::NoBrush));
+    painter->setPen(QPen(Qt::black));
+
     painter->drawRect(QRectF(QPointF(0.0, 0.0), baseSize));
+}
 
-    // label
-
+void StationItem::paintLabel(QPainter* painter, const QSizeF& labelSize)
+{
     painter->setBrush(QBrush(Qt::NoBrush));
     painter->setPen(QPen(Qt::darkBlue));
     painter->setFont(m_labelFont);
@@ -412,9 +448,10 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     QRectF labelRect(QPointF(0.0, 0.0), labelSize);
     painter->drawRect(labelRect);
     painter->drawText(labelRect, Qt::AlignCenter, getLabel());
+}
 
-    // queue
-
+void StationItem::paintQueue(QPainter* painter, const QSizeF& labelSize, const QSizeF& queueTaskSize, const QSizeF& processorTaskSize)
+{
     painter->setFont(m_taskFont);
 
     qreal queueAreaHeight = labelSize.height() + QUEUE_SPACING + queueTaskSize.height() + QUEUE_SPACING;
@@ -450,7 +487,7 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
             int task = m_tasksInQueue.at(m_tasksInQueue.size() - i - 1);
             if (task != EMPTY_TASK_ID)
             {
-                taskText.setNum(task);
+                taskText = getTaskText(task);
             }
         }
 
@@ -460,9 +497,10 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 
         queuePos += QPointF(queueTaskSize.width(), 0.0);
     }
+}
 
-    // processors
-
+void StationItem::paintProcessors(QPainter* painter, const QSizeF& queueTaskSize, const QSizeF& processorTaskSize)
+{
     qreal queueAreaWidth = QUEUE_SPACING + std::max(1, m_stationInfo.queueLength) * queueTaskSize.width() + QUEUE_SPACING;
 
     QPointF processorPos(queueAreaWidth + PROCESSOR_SPACING, PROCESSOR_SPACING);
@@ -473,7 +511,7 @@ void StationItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
         int task = m_tasksInProcessors.at(i);
         if (task != EMPTY_TASK_ID)
         {
-            taskText.setNum(m_tasksInProcessors.at(i));
+            taskText = getTaskText(m_tasksInProcessors.at(i));
         }
 
         QRectF processorTaskRect(processorPos, processorTaskSize);

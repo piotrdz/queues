@@ -144,6 +144,8 @@ void MainWindow::closeEvent(QCloseEvent* e)
 {
     m_simulationThread->endThread();
 
+    m_statisticsWindow->close();
+
     QWidget::closeEvent(e);
 }
 
@@ -207,26 +209,26 @@ void MainWindow::setSampleSimulationInstance()
 
     Station input;
     input.id = INPUT_STATION_ID;
-    input.position = QPointF(-220, 0);
+    input.position = QPointF(-250, 0);
     instance.stations.append(input);
 
     Station station1;
     station1.id = 1;
     station1.processorCount = 1;
     station1.queueLength = 2;
-    station1.position = QPointF(-80, 0);
+    station1.position = QPointF(-100, 0);
     instance.stations.append(station1);
 
     Station station2;
     station2.id = 2;
     station2.processorCount = 2;
     station2.queueLength = 3;
-    station2.position = QPointF(80, 0);
+    station2.position = QPointF(100, 0);
     instance.stations.append(station2);
 
     Station output;
     output.id = OUTPUT_STATION_ID;
-    output.position = QPointF(220, 0);
+    output.position = QPointF(250, 0);
     instance.stations.append(output);
 
     Connection connection1;
@@ -281,7 +283,7 @@ void MainWindow::arrivalDistributionParamsChanged()
 void MainWindow::updateStationParams()
 {
     int id = m_simulationScene->getSelectedStationId();
-    if (id == INVALID_STATION_ID)
+    if (id == INVALID_STATION_ID || id == INPUT_STATION_ID || id == OUTPUT_STATION_ID)
     {
         m_ui->stationOptionsDockWidgetContents->setEnabled(false);
     }

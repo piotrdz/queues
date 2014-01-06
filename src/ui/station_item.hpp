@@ -33,6 +33,16 @@ public:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
 private:
+    void paintSelectionMarkers(QPainter* painter, const QSizeF& baseSize);
+    void paintInputOutputNode(QPainter* painter, const QSizeF& baseSize);
+    void paintBoundingRect(QPainter* painter, const QSizeF& baseSize);
+    void paintLabel(QPainter* painter, const QSizeF& labelSize);
+    void paintProcessors(QPainter* painter, const QSizeF& queueTaskSize, const QSizeF& processorTaskSize);
+    void paintQueue(QPainter* painter, const QSizeF& labelSize, const QSizeF& queueTaskSize, const QSizeF& processorTaskSize);
+
+    QString getTaskText(int number);
+
+private:
     QRectF getBaseRect() const;
     QSizeF getBaseSize() const;
     QSizeF getLabelSize() const;
