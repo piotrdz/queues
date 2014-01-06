@@ -550,7 +550,10 @@ void Simulation::processTaskMachineIsIdle(Event event)
     int nextTaskToBeProcessed = EMPTY_TASK_ID;
     if (station.queueType == QueueType::Fifo)
     {
-        nextTaskToBeProcessed = station.tasksInQueue.front();
+        if (station.tasksInQueue.size() > 0)
+        {
+            nextTaskToBeProcessed = station.tasksInQueue.front();
+        }
     }
     else if (station.queueType == QueueType::Random)
     {
