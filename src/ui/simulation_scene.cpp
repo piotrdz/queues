@@ -67,6 +67,7 @@ void SimulationScene::addConnection(const Connection& connection)
     Q_ASSERT(destination != nullptr);
 
     ConnectionItem* connectionItem = new ConnectionItem(source, destination);
+    connectionItem->updateWeight(connection.weight);
     addItem(connectionItem);
 
     m_connectionItems.append(connectionItem);
