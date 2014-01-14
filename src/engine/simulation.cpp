@@ -343,6 +343,14 @@ void Simulation::processTaskInput(Event event)
         taskAddedToQueueEvent.stationId = connectionToFollow.to;
         m_eventQueue.enqueue(taskAddedToQueueEvent);
     }
+    else
+    {
+        Event taskOutputEvent;
+        taskOutputEvent.type = EventType::TaskOutput;
+        taskOutputEvent.time = event.time;
+        taskOutputEvent.taskId = event.taskId;
+        m_eventQueue.enqueue(taskOutputEvent);
+    }
 
     Event nextTaskEvent;
     nextTaskEvent.type = EventType::TaskInput;
