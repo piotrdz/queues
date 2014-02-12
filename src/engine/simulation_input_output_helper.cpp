@@ -101,11 +101,11 @@ bool SimulationInputOutputHelper::parseStation(const QString& line, Station& sta
 
     if (components.size() == 3)
     {
-        if (components[0] == "WE")
+        if (components[0] == "IN")
         {
             station.id = INPUT_STATION_ID;
         }
-        else if (components[0] == "WY")
+        else if (components[0] == "OUT")
         {
             station.id = OUTPUT_STATION_ID;
         }
@@ -179,12 +179,12 @@ bool SimulationInputOutputHelper::parseConnection(const QString& line, Connectio
     auto parseId = [](const QString& str, int &id) -> bool
     {
         bool ok = false;
-        if (str == "WE")
+        if (str == "IN")
         {
             id = INPUT_STATION_ID;
             ok = true;
         }
-        else if (str == "WY")
+        else if (str == "OUT")
         {
             id = OUTPUT_STATION_ID;
             ok = true;
@@ -357,11 +357,11 @@ void SimulationInputOutputHelper::saveStation(QTextStream& out, const Station& s
 {
     if (station.id == INPUT_STATION_ID)
     {
-        out << "WE";
+        out << "IN";
     }
     else if (station.id == OUTPUT_STATION_ID)
     {
-        out << "WY";
+        out << "OUT";
     }
     else
     {
@@ -394,11 +394,11 @@ void SimulationInputOutputHelper::saveConnection(QTextStream& out, const Connect
         QString result;
         if (id == INPUT_STATION_ID)
         {
-            result = "WE";
+            result = "IN";
         }
         else if (id == OUTPUT_STATION_ID)
         {
-            result = "WY";
+            result = "OUT";
         }
         else
         {

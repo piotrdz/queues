@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Kolejki</string>
+   <string>Queues</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -20,14 +20,14 @@
       <item>
        <widget class="QPushButton" name="loadFromFileButton">
         <property name="text">
-         <string>Wczytaj z pliku</string>
+         <string>Load from file</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="saveToFileButton">
         <property name="text">
-         <string>Zapisz do pliku</string>
+         <string>Save to file</string>
         </property>
        </widget>
       </item>
@@ -88,14 +88,14 @@
       <item>
        <widget class="QPushButton" name="singleStepButton">
         <property name="text">
-         <string>Następny krok</string>
+         <string>Next step</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="speedLabel">
         <property name="text">
-         <string>Szybkość:</string>
+         <string>Speed:</string>
         </property>
        </widget>
       </item>
@@ -141,7 +141,7 @@
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Właściwości systemu</string>
+    <string>System properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -151,7 +151,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Rozkład czasu zgłoszeń:</string>
+        <string>Arrival times distribution:</string>
        </property>
       </widget>
      </item>
@@ -192,7 +192,7 @@
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Właściwości stacji</string>
+    <string>Station properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -204,7 +204,7 @@
        <item>
         <widget class="QLabel" name="queueTypeLabel">
          <property name="text">
-          <string>Typ kolejki:</string>
+          <string>Type of queue:</string>
          </property>
         </widget>
        </item>
@@ -223,7 +223,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Losowa</string>
+           <string>Random</string>
           </property>
          </item>
         </widget>
@@ -246,7 +246,7 @@
      <item>
       <widget class="QLabel" name="queueLengthLabel">
        <property name="text">
-        <string>Pojemność kolejki:</string>
+        <string>Queue capacity:</string>
        </property>
       </widget>
      </item>
@@ -271,7 +271,7 @@
        <item>
         <widget class="QRadioButton" name="finiteQueueRadioButton">
          <property name="text">
-          <string>skończona o długości:</string>
+          <string>finite of length</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -327,7 +327,7 @@
        <item>
         <widget class="QRadioButton" name="infiniteQueueRadioButton">
          <property name="text">
-          <string>nieskończona</string>
+          <string>infinite</string>
          </property>
          <property name="checked">
           <bool>false</bool>
@@ -341,7 +341,7 @@
        <item>
         <widget class="QLabel" name="processorCountLabel">
          <property name="text">
-          <string>Liczba procesorów:</string>
+          <string>Number of processors:</string>
          </property>
         </widget>
        </item>
@@ -373,7 +373,7 @@
      <item>
       <widget class="QLabel" name="processingTimeDistributionLabel">
        <property name="text">
-        <string>Rozkład czasu przetwarzania:</string>
+        <string>Service times distribution:</string>
        </property>
       </widget>
      </item>
@@ -414,7 +414,7 @@
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Właściwości połączenia</string>
+    <string>Connection properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -426,7 +426,7 @@
        <item>
         <widget class="QLabel" name="connectionWeightLabel">
          <property name="text">
-          <string>Waga połączenia:</string>
+          <string>Connection weight:</string>
          </property>
         </widget>
        </item>

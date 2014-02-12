@@ -256,8 +256,7 @@ void MainWindow::setSimulationInstance(const SimulationInstance& simulationInsta
 {
     if (!Simulation::check(simulationInstance))
     {
-        QMessageBox::critical(this, QString::fromUtf8("Kolejki - błąd"),
-                              QString::fromUtf8("Błędna instancja!"));
+        QMessageBox::critical(this, tr("Queues - error"), tr("Invalid instance!"));
         return;
     }
 
@@ -436,7 +435,7 @@ void MainWindow::removeConnection(int from, int to)
 void MainWindow::loadFromFileButtonClicked()
 {
     QString fileName = QFileDialog::getOpenFileName(
-        this, QString::fromUtf8("Otwórz instancję"), "", tr("Pliki tekstowe (*.txt)"));
+        this, tr("Open an instance"), "", tr("Text files (*.txt)"));
 
     if (fileName.isEmpty())
     {
@@ -450,7 +449,7 @@ void MainWindow::loadFromFileButtonClicked()
 void MainWindow::saveToFileButtonClicked()
 {
     QString fileName = QFileDialog::getSaveFileName(
-        this, QString::fromUtf8("Zapisz instancję"), "", tr("Pliki tekstowe (*.txt)"));
+        this, tr("Save instance"), "", tr("Text files (*.txt)"));
 
     if (fileName.isEmpty())
     {
@@ -486,8 +485,8 @@ void MainWindow::startStopClicked()
     {
         if (!m_simulation->check())
         {
-            QMessageBox::critical(this, QString::fromUtf8("Kolejki - błąd"),
-                                  QString::fromUtf8("Nie można przeprowadzić symulacji - instancja systemu nie jest poprawna!"));
+            QMessageBox::critical(this, tr("Queues - error"),
+                                  tr("Cannot run simulation - instance is invalid!"));
             return;
         }
 
@@ -505,17 +504,17 @@ void MainWindow::updateSimulationInfo()
     QString simulationState;
     if (info.state == SimulationThread::State::Running)
     {
-        simulationState = "uruchomiona";
+        simulationState = "running";
     }
     else
     {
-        simulationState = "wstrzymana";
+        simulationState = "stopped";
     }
 
-    m_simulationStateLabel->setText(QString("Symulacja: %1").arg(simulationState));
-    m_lastEventTimeLabel->setText(QString("Czas ost. zdarz.: %1 s").arg(info.lastEventTime, 0, 'f', 3));
-    m_simulationTimeLabel->setText(QString("Czas sym.: %1 s").arg(info.currentSimulationTime, 0, 'f', 3));
-    m_nextEventTimeLabel->setText(QString("Czas nast. zdarz.: %1 s").arg(info.nextEventTime, 0, 'f', 3));
+    m_simulationStateLabel->setText(QString("Simulation: %1").arg(simulationState));
+    m_lastEventTimeLabel->setText(QString("Time of last event: %1 s").arg(info.lastEventTime, 0, 'f', 3));
+    m_simulationTimeLabel->setText(QString("Simulation time: %1 s").arg(info.currentSimulationTime, 0, 'f', 3));
+    m_nextEventTimeLabel->setText(QString("Time of next event: %1 s").arg(info.nextEventTime, 0, 'f', 3));
 }
 
 void MainWindow::newEvent(Event event)

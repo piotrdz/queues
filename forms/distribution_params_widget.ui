@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="distributionLabel">
        <property name="text">
-        <string>Rozkład:</string>
+        <string>Distribution:</string>
        </property>
       </widget>
      </item>
@@ -33,22 +33,22 @@
        </property>
        <item>
         <property name="text">
-         <string>Stały</string>
+         <string>Constant</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Jednorodny</string>
+         <string>Uniform</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Normalny</string>
+         <string>Normal</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Wykładniczy</string>
+         <string>Exponential</string>
         </property>
        </item>
       </widget>
@@ -90,7 +90,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="constantValueLabel">
          <property name="text">
-          <string>Wartość stała:</string>
+          <string>Constant value:</string>
          </property>
         </widget>
        </item>
@@ -170,7 +170,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="normalMeanLabel">
          <property name="text">
-          <string>Wartość średnia (μ):</string>
+          <string>Mean value (μ):</string>
          </property>
         </widget>
        </item>
@@ -190,7 +190,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="normalStdDevLabel">
          <property name="text">
-          <string>Odchylenie std. (σ):</string>
+          <string>Standard deviation (σ):</string>
          </property>
         </widget>
        </item>
@@ -220,7 +220,7 @@
        <item>
         <widget class="QLabel" name="exponentialMeanLabel">
          <property name="text">
-          <string>Wartość średnia (1/λ):</string>
+          <string>Mean value (1/λ):</string>
          </property>
         </widget>
        </item>

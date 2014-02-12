@@ -16,11 +16,11 @@ StatisticItemWidget::StatisticItemWidget(QWidget* parent, int index)
                                 static_cast<int>(StatType::SystemMeanTaskProcessingTime));
     m_ui->typeComboBox->addItem(QString::fromUtf8("N_t syst."),
                                 static_cast<int>(StatType::SystemMeanNumberOfTasks));
-    m_ui->typeComboBox->addItem(QString::fromUtf8("U_p stac."),
+    m_ui->typeComboBox->addItem(QString::fromUtf8("U_p stat."),
                                 static_cast<int>(StatType::StationMeanUtilizedProcessors));
-    m_ui->typeComboBox->addItem(QString::fromUtf8("T_q stac."),
+    m_ui->typeComboBox->addItem(QString::fromUtf8("T_q stat."),
                                 static_cast<int>(StatType::StationMeanWaitTime));
-    m_ui->typeComboBox->addItem(QString::fromUtf8("N_q stac."),
+    m_ui->typeComboBox->addItem(QString::fromUtf8("N_q stat."),
                                 static_cast<int>(StatType::StationMeanQueueLength));
 
     m_ui->stationLineEdit->setValidator(new QIntValidator(1, 100));

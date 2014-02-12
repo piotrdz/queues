@@ -7,13 +7,13 @@
 
 enum class EventType
 {
-    TaskInput,             //!< wejście zdarzenia do sieci
-    TaskOutput,            //!< wyjście zdarzenia z sieci
-    TaskAddedToQueue,      //!< zdarzenie wchodzi do kolejki
-    TaskStartedProcessing, //!< zdarzenie przetwarzane przez maszynę
-    TaskEndedProcessing,   //!< zdarzenie zakonczylo przetwarzanie
-    MachineIsIdle,         //!< maszyna została zwolniona
-    QueueHasPlace          //!< miejsce w kolejce zostało zwolnione
+    TaskInput,
+    TaskOutput,
+    TaskAddedToQueue,
+    TaskStartedProcessing,
+    TaskEndedProcessing,
+    MachineIsIdle,
+    QueueHasPlace
 };
 
 const int EMPTY_TASK_ID = 0;

@@ -38,7 +38,7 @@ StatisticsWindow::StatisticsWindow()
     m_statisticsLayout = new QVBoxLayout(m_ui->statisticsScrollArea);
     m_statisticsLayout->addSpacerItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
-    m_ui->plotWidget->setAxisTitle(QwtPlot::xBottom, "czas [s]");
+    m_ui->plotWidget->setAxisTitle(QwtPlot::xBottom, "time [s]");
 
     addNewStatistic();
 
@@ -90,12 +90,12 @@ void StatisticsWindow::showStatisticInfo()
 {
     QMessageBox::information(this, QString::fromUtf8("Kolejki"),
             QString::fromUtf8(
-                "Dostępne statystyki:\n"
-                "  T_t syst. - średni czas przetwarzania zadania w całym systemie\n"
-                "  N_t syst. - średnia liczba zadań w całym systemie\n"
-                "  U_p stac. - średnia liczba procesorów w użyciu w danej stacji\n"
-                "  T_q stac. - średni czas oczekiwania na obsługę w danej stacji\n"
-                "  N_q stac. - średnia długość kolejki w danej stacji\n"
+                "Available statistics:\n"
+                "  T_t syst. - mean time of processing a task in whole system\n"
+                "  N_t syst. - mean number of tasks in whole system\n"
+                "  U_p stat. - mean number of processors in use at given station\n"
+                "  T_q stat. - mean time of waiting for service at given station\n"
+                "  N_q stat. - mean length of queue at given station\n"
             ));
 }
 

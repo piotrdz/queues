@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Statystyki</string>
+   <string>Statistics</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -35,7 +35,7 @@
        </sizepolicy>
       </property>
       <property name="title">
-       <string>Statystyki</string>
+       <string>Statistics</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
        <item>
@@ -54,8 +54,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>463</width>
-            <height>426</height>
+            <width>555</width>
+            <height>434</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -72,14 +72,14 @@
          <item>
           <widget class="QPushButton" name="addButton">
            <property name="text">
-            <string>Dodaj</string>
+            <string>Add</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="infoButton">
            <property name="text">
-            <string>Opis statystyk</string>
+            <string>Description of statistics</string>
            </property>
           </widget>
          </item>

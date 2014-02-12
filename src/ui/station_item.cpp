@@ -418,11 +418,11 @@ void StationItem::paintInputOutputNode(QPainter* painter, const QSizeF& baseSize
     QString text;
     if (m_stationInfo.id == INPUT_STATION_ID)
     {
-        text = "WE";
+        text = "IN";
     }
     else
     {
-        text = "WY";
+        text = "OUT";
     }
 
     painter->setFont(m_labelFont);
