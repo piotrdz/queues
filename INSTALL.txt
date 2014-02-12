@@ -1,0 +1,13 @@
+To compile the project, you'll need:
+ * Qt >= 5.1
+ * Qwt >= 6.1 (make sure it is compiled for Qt5, not Qt4)
+ * CMake >= 2.8.8
+ * GCC >= 4.7 or clang >= 3.1 (because of C++11 features)
+
+Compilation and running of the project:
+ $ mkdir build
+ $ cd build
+ $ cmake ../
+ $ make
+ $ ./queues
+
