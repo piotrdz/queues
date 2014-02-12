@@ -4,6 +4,7 @@
 
 #include <QGraphicsScene>
 #include <QList>
+#include <QMap>
 
 class Connection;
 class ConnectionItem;
@@ -34,6 +35,8 @@ public:
 
     void removeStation(int id);
     void removeConnection(int from, int to);
+
+    QMap<int, QPointF> getStationPositions() const;
 
     void processCustomMousePress(const QPointF& scenePos);
     void processCustomMouseMove(const QPointF& scenePos);

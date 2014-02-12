@@ -183,6 +183,18 @@ void SimulationScene::removeConnection(int from, int to)
     }
 }
 
+QMap<int, QPointF> SimulationScene::getStationPositions() const
+{
+    QMap<int, QPointF> positions;
+
+    for (StationItem* stationItem : m_stationItems)
+    {
+        positions[stationItem->getId()] = stationItem->pos();
+    }
+
+    return positions;
+}
+
 void SimulationScene::processCustomMousePress(const QPointF& scenePos)
 {
     StationItem* stationItem = getStationItemAtPos(scenePos);

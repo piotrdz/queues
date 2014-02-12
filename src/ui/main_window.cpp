@@ -443,9 +443,7 @@ void MainWindow::loadFromFileButtonClicked()
         return;
     }
 
-    std::string strFileName = fileName.toStdString();
-
-    SimulationInstance instance = Simulation::readFromFile(strFileName);
+    SimulationInstance instance = Simulation::readFromFile(fileName);
     setSimulationInstance(instance);
 }
 
@@ -459,10 +457,10 @@ void MainWindow::saveToFileButtonClicked()
         return;
     }
 
-    std::string strFileName = fileName.toStdString();
+    m_simulation->updateStationPositions(m_simulationScene->getStationPositions());
 
     SimulationInstance instance = m_simulation->getInstance();
-    Simulation::saveToFile(strFileName, instance);
+    Simulation::saveToFile(fileName, instance);
 }
 
 void MainWindow::resetClicked()

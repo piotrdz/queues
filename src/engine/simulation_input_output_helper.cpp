@@ -1,307 +1,416 @@
 #include "engine/simulation_input_output_helper.hpp"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <QFile>
+#include <QTextStream>
+#include <boost/concept_check.hpp>
 
-void SimulationInputOutputHelper::loadDistribution(std::string line, Station& station)
+struct ParseContext
 {
-    unsigned comaPos = 0;
-    unsigned underlinePos = 0;
+    ParseContext(SimulationInstance& instance)
+     : simulationInstance(instance) {}
 
-    if (line[0] == 'C')
-    {
-        comaPos = line.find(",");
-        station.serviceTimeDistribution.type = DistributionType::Constant;
-        station.serviceTimeDistribution.param1 = atof(line.substr(1, comaPos-1).c_str());
-    }
-    if (line[0] == 'U')
-    {
-        underlinePos = line.find("_");
-        comaPos = line.find(",");
-        station.serviceTimeDistribution.type = DistributionType::Uniform;
-        station.serviceTimeDistribution.param1 = atof(line.substr(1, underlinePos-1).c_str());
-        station.serviceTimeDistribution.param2 = atof(line.substr(underlinePos+1, comaPos-underlinePos).c_str());
-    }
-    if (line[0] == 'E')
-    {
-        comaPos = line.find(",");
-        station.serviceTimeDistribution.type = DistributionType::Exponential;
-        station.serviceTimeDistribution.param1 = atof(line.substr(1, comaPos-1).c_str());
-    }
-    if (line[0] == 'N')
-    {
-        underlinePos = line.find("_");
-        comaPos = line.find(",");
-        station.serviceTimeDistribution.type = DistributionType::Normal;
-        station.serviceTimeDistribution.param1 = atof(line.substr(1, underlinePos-1).c_str());
-        station.serviceTimeDistribution.param2 = atof(line.substr(underlinePos+1, comaPos-underlinePos).c_str());
-    }
-}
+    QString line;
+    int lineNumber = 0;
+    int stationsCount = 0;
+    int stationId = 0;
+    SimulationInstance& simulationInstance;
+};
 
-const char SimulationInputOutputHelper::typeToString(DistributionType type)
-{
-    switch (type)
-    {
-        case DistributionType::Uniform: return 'U';
-        case DistributionType::Normal: return 'N';
-        case DistributionType::Exponential: return 'E';
-        case DistributionType::Constant: return 'C';
-    }
-    return 'C';
-}
 
-SimulationInstance SimulationInputOutputHelper::readFromFile(std::string path)
+SimulationInstance SimulationInputOutputHelper::readFromFile(const QString& path)
 {
     SimulationInstance simulationInstance;
-    std::string line;
-    int lineNo = 0;
-    int stationsNo = 0;
-    int stationId = 0;
 
-    std::ifstream confFile (path);
-    if(confFile.is_open())
+    QFile file(path);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        while (std::getline(confFile, line) )
+        QTextStream in(&file);
+
+        ParseContext context(simulationInstance);
+        context.line = in.readLine();
+
+        while (!context.line.isNull())
         {
-            if (lineNo == 0)
+            context.lineNumber++;
+            if (!parseLine(context))
             {
-                unsigned comaPos = 0;
-                unsigned underlinePos = 0;
-
-                if (line[0] == 'C')
-                {
-                    comaPos = line.find(",");
-                    simulationInstance.arrivalTimeDistribution.type = DistributionType::Constant;
-                    simulationInstance.arrivalTimeDistribution.param1 = atof(line.substr(1, comaPos-1).c_str());
-                }
-                if (line[0] == 'U')
-                {
-                    underlinePos = line.find("_");
-                    comaPos = line.find(",");
-                    simulationInstance.arrivalTimeDistribution.type = DistributionType::Uniform;
-                    simulationInstance.arrivalTimeDistribution.param1 = atof(line.substr(1, underlinePos-1).c_str());
-                    simulationInstance.arrivalTimeDistribution.param2 = atof(line.substr(underlinePos+1, comaPos-underlinePos).c_str());
-                }
-                if (line[0] == 'E')
-                {
-                    comaPos = line.find(",");
-                    simulationInstance.arrivalTimeDistribution.type = DistributionType::Exponential;
-                    simulationInstance.arrivalTimeDistribution.param1 = atof(line.substr(1, comaPos-1).c_str());
-                }
-                if (line[0] == 'N')
-                {
-                    underlinePos = line.find("_");
-                    comaPos = line.find(",");
-                    simulationInstance.arrivalTimeDistribution.type = DistributionType::Normal;
-                    simulationInstance.arrivalTimeDistribution.param1 = atof(line.substr(1, underlinePos-1).c_str());
-                    simulationInstance.arrivalTimeDistribution.param2 = atof(line.substr(underlinePos+1, comaPos-underlinePos).c_str());
-                }
-
-                comaPos = line.find(",");
-                stationsNo = atoi(line.substr(comaPos+1, line.length()-comaPos).c_str());
+                break;
             }
-
-            else if(lineNo <= stationsNo)
-            {
-                //add new station
-                Station newStation = Station();
-
-                unsigned comaPos = 0;
-
-                if (line.substr(0, 2) == "WE")
-                {
-                    newStation.id = INPUT_STATION_ID;
-                    line = line.substr(3);
-                }
-                else if (line.substr(0, 2) == "WY")
-                {
-                    newStation.id = OUTPUT_STATION_ID;
-                    line = line.substr(3);
-                }
-                else
-                {
-                    newStation.id = ++stationId;
-                    loadDistribution(line, newStation);
-
-                    comaPos = line.find(",");
-                    newStation.processorCount = atoi(line.substr(comaPos+1,1).c_str());
-                    if (line.substr(comaPos+3, 4) == "FIFO")
-                    {
-                        newStation.queueType = QueueType::Fifo;
-                    }
-                    else
-                    {
-                        newStation.queueType = QueueType::Random;
-                    }
-                    line = line.substr(comaPos+8);
-                    comaPos = line.find(",");
-                    newStation.queueLength = atoi(line.substr(0, comaPos).c_str());
-                    line = line.substr(comaPos+1);
-                }
-
-                comaPos = line.find(",");
-
-                float posX = 0.0;
-                float posY = 0.0;
-                posX = atof(line.substr(0, comaPos).c_str());
-                posY = atof(line.substr(comaPos+1, line.length()-comaPos).c_str());
-                QPointF point(posX, posY);
-                newStation.position = point;
-
-                simulationInstance.stations.append(newStation);
-            }
-            else if(lineNo > stationsNo)
-            {
-                //add new connection
-                Connection newCon = Connection();
-                unsigned comaPos = line.find(",");
-                if (line[0] == 'W')
-                {
-                    newCon.from = INPUT_STATION_ID;
-                }
-                else
-                {
-                    newCon.from = atoi(line.substr(0, comaPos).c_str());
-                }
-                line = line.substr(comaPos+1);
-                comaPos = line.find(",");
-                if (line[0] == 'W')
-                {
-                    newCon.to = OUTPUT_STATION_ID;
-                }
-                else
-                {
-                    newCon.to = atoi(line.substr(0, comaPos).c_str());
-                }
-                newCon.weight = atoi(line.substr(comaPos+1, line.length()-comaPos).c_str());
-
-                simulationInstance.connections.append(newCon);
-            }
-            lineNo++;
+            context.line = in.readLine();
         }
-        confFile.close();
-   }
-   return simulationInstance;
+    }
+
+    return simulationInstance;
 }
 
-void SimulationInputOutputHelper::saveToFile(std::string path, const SimulationInstance& simInstance)
+bool SimulationInputOutputHelper::parseLine(ParseContext& context)
 {
-    std::ofstream confFile (path);
-    std::string line;
-    std::ostringstream strStream1, strStream2;
-
-    if (confFile.is_open())
+    bool result = false;
+    if (context.lineNumber == 1)
     {
-        //first line
-        strStream1 << simInstance.arrivalTimeDistribution.param1;
-        if (simInstance.arrivalTimeDistribution.type == DistributionType::Constant)
-        {
-            line = "C" + strStream1.str();
-        }
-        else if (simInstance.arrivalTimeDistribution.type == DistributionType::Exponential)
-        {
-            line = "E" + strStream1.str();
-        }
-        else if (simInstance.arrivalTimeDistribution.type == DistributionType::Normal)
-        {
-            strStream2 << simInstance.arrivalTimeDistribution.param2;
-            line = "N" + strStream1.str() + "_" + strStream2.str();
-        }
-        else if (simInstance.arrivalTimeDistribution.type == DistributionType::Uniform)
-        {
-            strStream2 << simInstance.arrivalTimeDistribution.param2;
-            line = "U" + strStream1.str() + "_" + strStream2.str();
-        }
-        line.append(",");
-        strStream1.str("");
-        strStream1 << simInstance.stations.size();
-        line.append(strStream1.str());
-        line.append("\n");
-        confFile << line;
-
-        //opisy poszczególnych stacji
-
-        for (int i=0; i< simInstance.stations.size(); i++)
-        {
-            line.clear();
-
-            if (simInstance.stations[i].id == INPUT_STATION_ID)
-            {
-                line.append("WE");
-            }
-            else if (simInstance.stations[i].id == OUTPUT_STATION_ID)
-            {
-                line.append("WY");
-            }
-            else
-            {
-                line.append(1, typeToString(simInstance.stations[i].serviceTimeDistribution.type));
-                strStream1.str("");
-                strStream1 << simInstance.stations[i].serviceTimeDistribution.param1;
-                line.append(strStream1.str());
-                if(line[0] == 'N' || line[0] == 'U')
-                {
-                    strStream2.str("");
-                    strStream2 << simInstance.stations[i].serviceTimeDistribution.param2;
-                    line.append("_" + strStream2.str());
-                }
-                strStream1.str("");
-                strStream1 << simInstance.stations[i].processorCount;
-                line.append("," + strStream1.str());
-                if (simInstance.stations[i].queueType == QueueType::Fifo)
-                {
-                    line.append(",FIFO");
-                }
-                else
-                {
-                    line.append(",RAND");
-                }
-                strStream1.str("");
-                strStream1 << simInstance.stations[i].queueLength;
-                line.append("," + strStream1.str());
-            }
-
-            strStream1.str("");
-            strStream2.str("");
-            strStream1 << simInstance.stations[i].position.x();
-            strStream2 << simInstance.stations[i].position.y();
-            line.append("," + strStream1.str() + "," + strStream2.str());
-
-            line.append("\n");
-            confFile << line;
-        }
-
-        for (int i=0; i < simInstance.connections.size(); i++)
-        {
-            line.clear();
-
-            if (simInstance.connections[i].from == INPUT_STATION_ID)
-            {
-                line.append("WE,");
-            }
-            else
-            {
-                strStream1.str("");
-                strStream1 << simInstance.connections[i].from;
-                line.append(strStream1.str() + ",");
-            }
-            if (simInstance.connections[i].to == OUTPUT_STATION_ID)
-            {
-                line.append("WY,");
-            }
-            else
-            {
-                strStream1.str("");
-                strStream1 << simInstance.connections[i].to;
-                line.append(strStream1.str() + ",");
-            }
-            strStream1.str("");
-            strStream1 << simInstance.connections[i].weight;
-            line.append(strStream1.str() + "\n");
-
-            confFile << line;
-        }
-        confFile.close();
+        result = parseFirstLine(context);
     }
+    else if (context.lineNumber <= context.stationsCount + 1)
+    {
+        Station station;
+        result = parseStation(context.line, station, context.stationId);
+        if (result)
+        {
+            context.simulationInstance.stations.append(station);
+        }
+    }
+    else
+    {
+        Connection connection;
+        result = parseConnection(context.line, connection);
+        if (result)
+        {
+            context.simulationInstance.connections.append(connection);
+        }
+    }
+
+    return result;
+}
+
+bool SimulationInputOutputHelper::parseFirstLine(ParseContext& context)
+{
+    QStringList components = context.line.split(",");
+    if (components.size() != 2)
+    {
+        return false;
+    }
+
+    if (!parseDistribution(components[0], context.simulationInstance.arrivalTimeDistribution))
+    {
+        return false;
+    }
+
+    bool ok = false;
+    context.stationsCount = components[1].toInt(&ok);
+
+    return ok;
+}
+
+bool SimulationInputOutputHelper::parseStation(const QString& line, Station& station, int& stationId)
+{
+    QStringList components = line.split(",");
+    if (components.size() != 3 && components.size() != 6)
+    {
+        return false;
+    }
+
+    if (components.size() == 3)
+    {
+        if (components[0] == "WE")
+        {
+            station.id = INPUT_STATION_ID;
+        }
+        else if (components[0] == "WY")
+        {
+            station.id = OUTPUT_STATION_ID;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        station.id = ++stationId;
+
+        if (!parseDistribution(components[0], station.serviceTimeDistribution))
+        {
+            return false;
+        }
+
+        bool ok = false;
+        station.processorCount = components[1].toInt(&ok);
+        if (!ok)
+        {
+            return false;
+        }
+
+        if (components[2] == "FIFO")
+        {
+            station.queueType = QueueType::Fifo;
+        }
+        else if (components[2] == "RANDOM")
+        {
+            station.queueType = QueueType::Random;
+        }
+        else
+        {
+            return false;
+        }
+
+        station.queueLength = components[3].toInt(&ok);
+        if (!ok)
+        {
+            return false;
+        }
+    }
+
+    bool ok = false;
+    qreal x = components.at(components.size()-2).toFloat(&ok);
+    if (!ok)
+    {
+        return false;
+    }
+
+    qreal y = components.at(components.size()-1).toFloat(&ok);
+    if (!ok)
+    {
+        return false;
+    }
+
+    station.position = QPointF(x, y);
+
+    return true;
+}
+
+bool SimulationInputOutputHelper::parseConnection(const QString& line, Connection& connection)
+{
+    QStringList components = line.split(",");
+    if (components.size() != 3)
+    {
+        return false;
+    }
+
+    auto parseId = [](const QString& str, int &id) -> bool
+    {
+        bool ok = false;
+        if (str == "WE")
+        {
+            id = INPUT_STATION_ID;
+            ok = true;
+        }
+        else if (str == "WY")
+        {
+            id = OUTPUT_STATION_ID;
+            ok = true;
+        }
+        else
+        {
+            id = str.toInt(&ok);
+        }
+
+        return ok;
+    };
+
+    if (!parseId(components[0], connection.from))
+    {
+        return false;
+    }
+
+    if (!parseId(components[1], connection.to))
+    {
+        return false;
+    }
+
+    bool ok = false;
+    connection.weight = components[2].toInt(&ok);
+    if (!ok)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool SimulationInputOutputHelper::parseDistribution(const QString& str, Distribution& distribution)
+{
+    if (str.isEmpty())
+    {
+        return false;
+    }
+
+    QChar letter = str.at(0);
+    QStringList components = str.mid(1).split("_");
+
+    auto parseParams = [&distribution,&components](int numberOfParams) -> bool
+    {
+        if (components.size() != numberOfParams)
+        {
+            return false;
+        }
+
+        bool ok = false;
+        distribution.param1 = components[0].toFloat(&ok);
+        if (!ok)
+        {
+            return false;
+        }
+
+        if (numberOfParams > 1)
+        {
+            distribution.param2 = components[1].toFloat(&ok);
+            if (!ok)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    switch (letter.toLatin1())
+    {
+        case 'C':
+            distribution.type = DistributionType::Constant;
+            parseParams(1);
+            break;
+
+        case 'U':
+            distribution.type = DistributionType::Constant;
+            parseParams(2);
+            break;
+
+        case 'E':
+            distribution.type = DistributionType::Exponential;
+            parseParams(1);
+            break;
+
+        case 'N':
+            distribution.type = DistributionType::Normal;
+            parseParams(2);
+            break;
+
+        default:
+            break;
+    }
+
+    return true;
+}
+
+void SimulationInputOutputHelper::saveToFile(const QString& path, const SimulationInstance& simulationInstance)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return;
+    }
+
+    QTextStream out(&file);
+
+    saveFirstLine(out, simulationInstance);
+
+    for (const Station& station : simulationInstance.stations)
+    {
+        saveStation(out, station);
+    }
+
+    for (const Connection& connection : simulationInstance.connections)
+    {
+        saveConnection(out, connection);
+    }
+}
+
+QString SimulationInputOutputHelper::distributionToString(const Distribution& distribution)
+{
+    QString str;
+    QTextStream out(&str);
+
+    auto printParams = [&out,&distribution](int numberOfParams)
+    {
+        out << distribution.param1;
+        if (numberOfParams > 1)
+        {
+            out << '_' << distribution.param2;
+        }
+    };
+
+    switch (distribution.type)
+    {
+        case DistributionType::Constant:
+            out << 'C';
+            printParams(1);
+            break;
+
+        case DistributionType::Uniform:
+            out << 'U';
+            printParams(2);
+            break;
+
+        case DistributionType::Exponential:
+            out << 'E';
+            printParams(1);
+            break;
+
+        case DistributionType::Normal:
+            out << 'N';
+            printParams(2);
+            break;
+    }
+
+    return str;
+}
+
+void SimulationInputOutputHelper::saveFirstLine(QTextStream& out, const SimulationInstance& simulationInstance)
+{
+    out << distributionToString(simulationInstance.arrivalTimeDistribution);
+    out << ",";
+    out << simulationInstance.stations.size();
+    out << "\n";
+}
+
+void SimulationInputOutputHelper::saveStation(QTextStream& out, const Station& station)
+{
+    if (station.id == INPUT_STATION_ID)
+    {
+        out << "WE";
+    }
+    else if (station.id == OUTPUT_STATION_ID)
+    {
+        out << "WY";
+    }
+    else
+    {
+        out << distributionToString(station.serviceTimeDistribution);
+        out << ",";
+        out << station.processorCount;
+        out << ",";
+        if (station.queueType == QueueType::Fifo)
+        {
+            out << "FIFO";
+        }
+        else
+        {
+            out << "RANDOM";
+        }
+        out << ",";
+        out << station.queueLength;
+    }
+    out << ",";
+    out << station.position.x();
+    out << ",";
+    out << station.position.y();
+    out << "\n";
+}
+
+void SimulationInputOutputHelper::saveConnection(QTextStream& out, const Connection& connection)
+{
+    auto stationIdToString = [](int id) -> QString
+    {
+        QString result;
+        if (id == INPUT_STATION_ID)
+        {
+            result = "WE";
+        }
+        else if (id == OUTPUT_STATION_ID)
+        {
+            result = "WY";
+        }
+        else
+        {
+            result = QString().setNum(id);
+        }
+        return result;
+    };
+
+    out << stationIdToString(connection.from);
+    out << ",";
+    out << stationIdToString(connection.to);
+    out << ",";
+    out << connection.weight;
+    out << "\n";
 }

@@ -61,6 +61,8 @@ public:
     void removeStation(int id);
     void removeConnection(int from, int to);
 
+    void updateStationPositions(const QMap<int, QPointF>& positions);
+
     void reset();
     Event simulateNextStep();
     double getCurrentTime();
@@ -69,13 +71,12 @@ public:
     bool check() const;
     static bool check(const SimulationInstance& instance);
 
-    static SimulationInstance readFromFile(std::string path);
-    static void saveToFile(std::string path, const SimulationInstance& simulationInstance);
+    static SimulationInstance readFromFile(const QString& path);
+    static void saveToFile(const QString& path, const SimulationInstance& simulationInstance);
 
     void debugDump();
 
 private:
-
     void processEvent(Event event);
     void processTaskInput(Event event);
     void processTaskAddedToQueue(Event event);

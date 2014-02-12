@@ -223,6 +223,15 @@ void Simulation::removeConnection(int from, int to)
     }
 }
 
+void Simulation::updateStationPositions(const QMap<int, QPointF>& positions)
+{
+    for (auto stationId : positions.keys())
+    {
+        WorkingStation& station = getWorkingStation(stationId);
+        station.position = positions.value(stationId);
+    }
+}
+
 bool Simulation::isConnectionPossible(int from, int to) const
 {
     if (to == INPUT_STATION_ID || from == OUTPUT_STATION_ID)
@@ -748,12 +757,12 @@ bool Simulation::check(const SimulationInstance& instance)
     return SimulationCheckHelper::check(instance);
 }
 
-SimulationInstance Simulation::readFromFile(std::string path)
+SimulationInstance Simulation::readFromFile(const QString& path)
 {
     return SimulationInputOutputHelper::readFromFile(path);
 }
 
-void Simulation::saveToFile(std::string path, const SimulationInstance& simulationInstance)
+void Simulation::saveToFile(const QString& path, const SimulationInstance& simulationInstance)
 {
     return SimulationInputOutputHelper::saveToFile(path, simulationInstance);
 }
